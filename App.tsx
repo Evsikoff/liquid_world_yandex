@@ -71,15 +71,23 @@ const App: React.FC = () => {
 
   const handleStartNewGame = () => {
     const hasProgress = localStorage.getItem(PROGRESS_KEY) !== null;
-    if (hasProgress && !window.confirm("Вы уверены, что хотите начать заново? Весь текущий прогресс будет сброшен.")) {
-      return;
+    
+    if (hasProgress) {
+      if (!window.confirm("Вы уверены, что хотите начать заново? Весь текущий прогресс будет сброшен.")) {
+        return;
+      }
     }
+
+    // Очищаем хранилище и состояние перед началом
     localStorage.removeItem(PROGRESS_KEY);
     localStorage.removeItem(MAX_LEVEL_KEY);
+    
     setCurrentLevelIndex(0);
     setMaxReachedLevelIndex(0);
-    setView('game');
     saveProgress(0, 0);
+    
+    // Переключаем экран
+    setView('game');
   };
 
   const handleContinue = () => setView('game');

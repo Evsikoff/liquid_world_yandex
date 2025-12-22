@@ -1,26 +1,27 @@
 import { Level } from './types';
 
-// Ссылки на аудио-ресурсы (можно заменить на реальные URL)
+// Пути к вашим локальным файлам в репозитории
+// Создайте папку /audio/ в корне и разложите файлы по этим путям
 export const AUDIO_ASSETS = {
   music: {
-    menu: 'https://actions.google.com/sounds/v1/ambiences/morning_birds.ogg', // Плейсхолдер для меню
-    game: 'https://actions.google.com/sounds/v1/ambiences/spring_village.ogg', // Плейсхолдер для игры
+    menu: '/audio/music/menu_theme.mp3',
+    game: '/audio/music/game_ambient.mp3',
   },
   sfx: {
     transfer: [
-      'https://actions.google.com/sounds/v1/water/pouring_water_into_cup.ogg',
-      'https://actions.google.com/sounds/v1/water/water_splash.ogg',
-      'https://actions.google.com/sounds/v1/water/glug_glug_glug.ogg',
+      '/audio/sfx/pour_1.mp3',
+      '/audio/sfx/pour_2.mp3',
+      '/audio/sfx/pour_3.mp3',
     ],
     sink: [
-      'https://actions.google.com/sounds/v1/water/water_pouring_in_sink.ogg',
-      'https://actions.google.com/sounds/v1/water/draining_sink.ogg',
-      'https://actions.google.com/sounds/v1/water/sink_drain_gurgle.ogg',
+      '/audio/sfx/sink_1.mp3',
+      '/audio/sfx/sink_2.mp3',
+      '/audio/sfx/sink_3.mp3',
     ],
     tap: [
-      'https://actions.google.com/sounds/v1/water/running_tap.ogg',
-      'https://actions.google.com/sounds/v1/water/fill_water_bucket.ogg',
-      'https://actions.google.com/sounds/v1/water/water_tap_on.ogg',
+      '/audio/sfx/tap_1.mp3',
+      '/audio/sfx/tap_2.mp3',
+      '/audio/sfx/tap_3.mp3',
     ]
   }
 };
