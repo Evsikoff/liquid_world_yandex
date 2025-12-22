@@ -69,6 +69,29 @@ export const LEVELS: Level[] = [
   },
   {
     id: 3,
+    title: "Задача Пуассона",
+    description: "Отлей половину из сосуда.",
+    hasSinkAndTap: false,
+    containers: [
+      { id: 'c1', name: 'Сосуд', capacity: 1200, initialAmount: 1200 },
+      { id: 'c2', name: 'Графин', capacity: 800, initialAmount: 0 },
+      { id: 'c3', name: 'Колба', capacity: 500, initialAmount: 0 },
+    ],
+    targets: [
+      { containerId: 'ANY', amount: 600 }
+    ],
+    solutionSteps: [
+      { description: "Из сосуда в графин.", amounts: { 'c1': 400, 'c2': 800, 'c3': 0 } },
+{ description: "Из графина в колбу.", amounts: { 'c1': 400, 'c2': 300, 'c3': 500 } },
+{ description: "Из колбы в сосуд.", amounts: { 'c1': 900, 'c2': 300, 'c3': 0 } },
+{ description: "Из графина в колбу.", amounts: { 'c1': 900, 'c2': 0, 'c3': 300 } },
+{ description: "Из графина в колбу.", amounts: { 'c1': 900, 'c2': 0, 'c3': 300 } },
+{ description: "Из сосуда в графин.", amounts: { 'c1': 100, 'c2': 800, 'c3': 300 } },
+{ description: "Из графина в колбу.", amounts: { 'c1': 100, 'c2': 600, 'c3': 500 } },
+    ]
+  },
+  {
+    id: 4,
     title: "Три сосуда",
     description: "Разделите 800 мл поровну между бидоном и кувшином.",
     hasSinkAndTap: false,
@@ -92,7 +115,7 @@ export const LEVELS: Level[] = [
     ]
   },
   {
-    id: 4,
+    id: 5,
     title: "Ведро, бидон и кувшин!",
     description: "Получи 500 мл в любом сосуде.",
     hasSinkAndTap: true,
@@ -117,7 +140,7 @@ export const LEVELS: Level[] = [
     ]
   },
   {
-    id: 5,
+    id: 6,
     title: "Поход в баню",
     description: "Две компании собираются в баню. Нужно выделить каждой по 800 мл воды.",
     hasSinkAndTap: false,
@@ -148,7 +171,7 @@ export const LEVELS: Level[] = [
     ]
   },
   {
-    id: 6,
+    id: 7,
     title: "Загадка про квас",
     description: "Ты торгуешь квасом из двух бочек, к тебе подршло три покупателя со своей тарой. Они хотят купить по два литра.",
     hasSinkAndTap: true,
@@ -176,7 +199,7 @@ export const LEVELS: Level[] = [
     ]
   },
   {
-    id: 7,
+    id: 8,
     title: "Молоко",
     description: "Нужно поделить молоко по ровну.",
     hasSinkAndTap: false,
@@ -204,6 +227,30 @@ export const LEVELS: Level[] = [
 { description: "Из кувшина в бидон.", amounts: { 'c1': 1200, 'c2': 200, 'c3': 0 } },
 { description: "Из бочки в кувшин.", amounts: { 'c1': 700, 'c2': 200, 'c3': 500 } },
 { description: "Из кувшина в бидон.", amounts: { 'c1': 700, 'c2': 700, 'c3': 0 } }
+    ]
+  },
+  {
+    id: 9,
+    title: "Вино",
+    description: "К тебе пришел сосед и просит 5 литров вина. Найди способ его налить.",
+    hasSinkAndTap: false,
+    containers: [
+      { id: 'c1', name: 'Бочка', capacity: 20000, initialAmount: 20000 },
+      { id: 'c2', name: 'Ведро', capacity: 7000, initialAmount: 0 },
+      { id: 'c3', name: 'Амфора', capacity: 13000, initialAmount: 0 },
+    ],
+    targets: [
+      { containerId: 'ANY', amount: 5000 }
+    ],
+    solutionSteps: [
+      { description: "Из бочки в амфору.", amounts: { 'c1': 7000, 'c2': 0, 'c3': 13000 } },
+{ description: "Из амфоры в ведро.", amounts: { 'c1': 7000, 'c2': 7000, 'c3': 6000 } },
+{ description: "Из ведра в бочку.", amounts: { 'c1': 14000, 'c2': 0, 'c3': 6000 } },
+{ description: "Из амфоры в ведро.", amounts: { 'c1': 14000, 'c2': 6000, 'c3': 0 } },
+{ description: "Из бочки в амфору.", amounts: { 'c1': 1000, 'c2': 6000, 'c3': 13000 } },
+{ description: "Из амфоры в ведро.", amounts: { 'c1': 1000, 'c2': 7000, 'c3': 12000 } },
+{ description: "Из ведра в бочку.", amounts: { 'c1': 8000, 'c2': 0, 'c3': 12000 } },
+{ description: "Из амфоры в ведро.", amounts: { 'c1': 8000, 'c2': 7000, 'c3': 5000 } }
     ]
   }
 ];
