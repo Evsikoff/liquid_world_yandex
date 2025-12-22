@@ -144,11 +144,39 @@ export const LEVELS: Level[] = [
       { description: "Из кадки в ведро.", amounts: { 'c1': 1400, 'c2': 0, 'c3': 200 } },
       { description: "Из канистры в кадку.", amounts: { 'c1': 1400, 'c2': 200, 'c3': 0 } },
       { description: "Из ведра в канистру.", amounts: { 'c1': 800, 'c2': 200, 'c3': 600 } },
-      { description: "Из канистры в кадку.", amounts: { 'c1': 800, 'c2': 200, 'c3': 600 } },
+      { description: "Из канистры в кадку.", amounts: { 'c1': 800, 'c2': 800, 'c3': 0 } }
     ]
   },
   {
     id: 6,
+    title: "Загадка про квас",
+    description: "Ты торгуешь квасом из двух бочек, к тебе подршло три покупателя со своей тарой. Они хотят купить по два литра.",
+    hasSinkAndTap: true,
+    containers: [
+      { id: 'c1', name: 'Канистра', capacity: 5000, initialAmount: 0 },
+      { id: 'c2', name: 'Бутылка', capacity: 3000, initialAmount: 0 },
+      { id: 'c3', name: 'Бидон', capacity: 4000, initialAmount: 0 },
+      { id: 'c4', name: 'Первая бочка', capacity: 50000, initialAmount: 50000 },
+      { id: 'c5', name: 'Вторая бочка', capacity: 50000, initialAmount: 50000 },
+    ],
+    targets: [
+      { containerId: 'c1', amount: 2000 },
+      { containerId: 'c2', amount: 2000 },
+      { containerId: 'c3', amount: 2000 }
+    ],
+    solutionSteps: [
+      { description: "Первый ход.", amounts: { 'c1': 0, 'c2': 3000, 'c3': 4000, 'c4': 46000, 'c5': 47000 } },
+{ description: "Второй ход.", amounts: { 'c1': 5000, 'c2': 0, 'c3': 2000, 'c4': 46000, 'c5': 47000 } },
+{ description: "Третий ход.", amounts: { 'c1': 2000, 'c2': 3000, 'c3': 2000, 'c4': 46000, 'c5': 47000 } },
+{ description: "Четвертый ход.", amounts: { 'c1': 0, 'c2': 3000, 'c3': 2000, 'c4': 46000, 'c5': 49000 } },
+{ description: "Пятый ход.", amounts: { 'c1': 3000, 'c2': 0, 'c3': 2000, 'c4': 46000, 'c5': 49000 } },
+{ description: "Шестой ход.", amounts: { 'c1': 5000, 'c2': 0, 'c3': 2000, 'c4': 44000, 'c5': 49000 } },
+{ description: "Седьмой ход.", amounts: { 'c1': 2000, 'c2': 3000, 'c3': 2000, 'c4': 44000, 'c5': 49000 } },
+{ description: "Восьмой ход.", amounts: { 'c1': 2000, 'c2': 2000, 'c3': 2000, 'c4': 44000, 'c5': 50000 } }
+    ]
+  },
+  {
+    id: 7,
     title: "Молоко",
     description: "Нужно поделить молоко по ровну.",
     hasSinkAndTap: false,
