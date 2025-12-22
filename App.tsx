@@ -257,41 +257,43 @@ const App: React.FC = () => {
   };
 
   return (
-    <>
-      {view === 'menu' && (
-        <MainMenu
-          onStart={handleStartNewGame}
-          canContinue={localStorage.getItem(PROGRESS_KEY) !== null}
-          onContinue={handleContinue}
-          onOpenLevelSelect={handleOpenLevelSelect}
-          currentLevelId={LEVELS[currentLevelIndex].id}
-          audioSettings={audioSettings}
-          toggleMusic={toggleMusic}
-          toggleSfx={toggleSfx}
-        />
-      )}
+    <div className="game-viewport">
+      <div className="game-container">
+        {view === 'menu' && (
+          <MainMenu
+            onStart={handleStartNewGame}
+            canContinue={localStorage.getItem(PROGRESS_KEY) !== null}
+            onContinue={handleContinue}
+            onOpenLevelSelect={handleOpenLevelSelect}
+            currentLevelId={LEVELS[currentLevelIndex].id}
+            audioSettings={audioSettings}
+            toggleMusic={toggleMusic}
+            toggleSfx={toggleSfx}
+          />
+        )}
 
-      {view === 'levelSelect' && (
-        <LevelSelect
-          levels={LEVELS}
-          maxReachedIndex={maxReachedLevelIndex}
-          onSelect={handleSelectLevel}
-          onBack={() => setView('menu')}
-        />
-      )}
+        {view === 'levelSelect' && (
+          <LevelSelect
+            levels={LEVELS}
+            maxReachedIndex={maxReachedLevelIndex}
+            onSelect={handleSelectLevel}
+            onBack={() => setView('menu')}
+          />
+        )}
 
-      {view === 'game' && (
-        <GameLevel
-          level={LEVELS[currentLevelIndex]}
-          onLevelComplete={handleLevelComplete}
-          onExit={handleExitToMenu}
-          audioSettings={audioSettings}
-          toggleMusic={toggleMusic}
-          toggleSfx={toggleSfx}
-          playRandomSfx={playRandomSfx}
-        />
-      )}
-    </>
+        {view === 'game' && (
+          <GameLevel
+            level={LEVELS[currentLevelIndex]}
+            onLevelComplete={handleLevelComplete}
+            onExit={handleExitToMenu}
+            audioSettings={audioSettings}
+            toggleMusic={toggleMusic}
+            toggleSfx={toggleSfx}
+            playRandomSfx={playRandomSfx}
+          />
+        )}
+      </div>
+    </div>
   );
 };
 

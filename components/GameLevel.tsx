@@ -171,7 +171,7 @@ const GameLevel: React.FC<GameLevelProps> = ({
   const isSinkSuggested = selectedContainer && selectedDef && selectedContainer.currentAmount > 0;
 
   return (
-    <div className="flex flex-col h-screen bg-slate-100 relative overflow-hidden">
+    <div className="flex flex-col w-full h-full bg-slate-100 relative overflow-hidden">
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
 
       <header className="p-4 flex justify-between items-center bg-white/80 backdrop-blur-md shadow-sm z-[60]">
@@ -311,7 +311,7 @@ const GameLevel: React.FC<GameLevelProps> = ({
       </Modal>
 
       {showHintModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 overflow-y-auto">
+        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Lightbulb /> Подсказки</h2>

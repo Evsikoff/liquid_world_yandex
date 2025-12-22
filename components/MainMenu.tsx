@@ -23,12 +23,12 @@ const MainMenu: React.FC<MainMenuProps> = ({
   toggleSfx
 }) => {
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+    <div className="w-full h-full bg-slate-100 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Декоративный фон */}
-      <div className="fixed inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
-      
+      <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+
       {/* Аудио Контролы */}
-      <div className="fixed top-6 right-6 flex gap-3 z-50">
+      <div className="absolute top-4 right-4 flex gap-3 z-50">
         <button 
           onClick={toggleMusic}
           className={`p-3 rounded-2xl shadow-lg border-2 transition-all active:scale-90 ${audioSettings.music ? 'bg-white border-blue-200 text-blue-500' : 'bg-slate-200 border-slate-300 text-slate-400'}`}

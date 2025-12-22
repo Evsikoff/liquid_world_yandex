@@ -11,7 +11,7 @@ interface LevelSelectProps {
 
 const LevelSelect: React.FC<LevelSelectProps> = ({ levels, maxReachedIndex, onSelect, onBack }) => {
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+    <div className="w-full h-full bg-slate-100 flex items-center justify-center p-4 overflow-auto">
       <div className="bg-white rounded-[40px] shadow-2xl p-8 w-full max-w-2xl transform transition-all duration-500">
         <div className="flex items-center gap-4 mb-8">
           <button 
