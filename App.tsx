@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import MainMenu from './components/MainMenu';
 import GameLevel from './components/GameLevel';
 import LevelSelect from './components/LevelSelect';
-import { LEVELS } from './constants';
+import { LEVELS, AUDIO_ASSETS } from './constants';
 
 const PROGRESS_KEY = 'liquid_puzzle_v2_progress';
 const MAX_LEVEL_KEY = 'liquid_puzzle_v2_max_level';
@@ -18,6 +18,11 @@ const App: React.FC = () => {
     music: true,
     sfx: true
   });
+
+  // Centralized audio management
+  const menuMusicRef = useRef<HTMLAudioElement | null>(null);
+  const gameMusicRef = useRef<HTMLAudioElement | null>(null);
+  const sfxPoolRef = useRef<Map<string, HTMLAudioElement>>(new Map());
 
   // Load progress and audio settings on mount
   useEffect(() => {
@@ -44,7 +49,78 @@ const App: React.FC = () => {
         console.error("Failed to parse audio settings");
       }
     }
+
+    // Initialize audio elements once
+    if (!menuMusicRef.current) {
+      menuMusicRef.current = new Audio(AUDIO_ASSETS.music.menu);
+      menuMusicRef.current.loop = true;
+      menuMusicRef.current.preload = 'auto';
+    }
+    if (!gameMusicRef.current) {
+      gameMusicRef.current = new Audio(AUDIO_ASSETS.music.game);
+      gameMusicRef.current.loop = true;
+      gameMusicRef.current.preload = 'auto';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      menuMusicRef.current?.pause();
+      gameMusicRef.current?.pause();
+      menuMusicRef.current = null;
+      gameMusicRef.current = null;
+    };
   }, []);
+
+  // Music playback control based on view and settings
+  useEffect(() => {
+    const menuMusic = menuMusicRef.current;
+    const gameMusic = gameMusicRef.current;
+
+    if (!menuMusic || !gameMusic) return;
+
+    // Stop all music first
+    menuMusic.pause();
+    gameMusic.pause();
+
+    if (!audioSettings.music) return;
+
+    // Play appropriate music based on view
+    const playMusic = async (audio: HTMLAudioElement) => {
+      try {
+        audio.currentTime = 0;
+        await audio.play();
+      } catch (error) {
+        console.log("Audio playback blocked. User interaction required.");
+      }
+    };
+
+    if (view === 'menu' || view === 'levelSelect') {
+      playMusic(menuMusic);
+    } else if (view === 'game') {
+      playMusic(gameMusic);
+    }
+  }, [view, audioSettings.music]);
+
+  // SFX playback helper
+  const playRandomSfx = useCallback((type: 'transfer' | 'sink' | 'tap') => {
+    if (!audioSettings.sfx) return;
+
+    const variants = AUDIO_ASSETS.sfx[type];
+    const randomUrl = variants[Math.floor(Math.random() * variants.length)];
+
+    // Use pooled audio or create new
+    let audio = sfxPoolRef.current.get(randomUrl);
+    if (!audio) {
+      audio = new Audio(randomUrl);
+      audio.preload = 'auto';
+      sfxPoolRef.current.set(randomUrl, audio);
+    }
+
+    audio.currentTime = 0;
+    audio.play().catch((error) => {
+      console.log("SFX playback failed:", error.message);
+    });
+  }, [audioSettings.sfx]);
 
   const toggleMusic = () => {
     setAudioSettings(prev => {
@@ -141,13 +217,14 @@ const App: React.FC = () => {
       )}
 
       {view === 'game' && (
-        <GameLevel 
+        <GameLevel
           level={LEVELS[currentLevelIndex]}
           onLevelComplete={handleLevelComplete}
           onExit={handleExitToMenu}
           audioSettings={audioSettings}
           toggleMusic={toggleMusic}
           toggleSfx={toggleSfx}
+          playRandomSfx={playRandomSfx}
         />
       )}
     </>
