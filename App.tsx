@@ -30,6 +30,8 @@ const App: React.FC = () => {
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [maxReachedLevelIndex, setMaxReachedLevelIndex] = useState(0);
 
+  const stageRef = useRef<HTMLDivElement | null>(null);
+
   // Mobile device detection
   const { isMobile, isPortrait } = useDeviceDetection();
 
@@ -38,6 +40,15 @@ const App: React.FC = () => {
     music: true,
     sfx: true
   });
+
+  const updateStageScale = useCallback(() => {
+    const el = stageRef.current;
+    if (!el) return;
+
+    const { width, height } = el.getBoundingClientRect();
+    const scale = Math.min(width / 1280, height / 720, 1);
+    el.style.setProperty('--stage-scale', scale.toString());
+  }, []);
 
   // Web Audio API refs
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -196,6 +207,19 @@ const App: React.FC = () => {
     };
   }, [loadAudioBuffer, stopMusic]);
 
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+
+    const observer = new ResizeObserver(() => updateStageScale());
+    observer.observe(el);
+    updateStageScale();
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [updateStageScale]);
+
   // Music playback control based on view and settings
   useEffect(() => {
     if (!audioSettings.music) {
@@ -308,49 +332,51 @@ const App: React.FC = () => {
 
   return (
     <div className="app-shell">
-      <div className="app-stage">
+      <div className="app-stage" ref={stageRef}>
         {/* Show rotate overlay on mobile portrait mode */}
         {isMobile && isPortrait && <RotateDeviceOverlay />}
 
-        <div className="app-stage-content">
-          {view === 'menu' && (
-            <MainMenu
-              onStart={handleStartNewGame}
-              canContinue={localStorage.getItem(PROGRESS_KEY) !== null}
-              onContinue={handleContinue}
-              onOpenLevelSelect={handleOpenLevelSelect}
-              currentLevelId={LEVELS[currentLevelIndex].id}
-              audioSettings={audioSettings}
-              toggleMusic={toggleMusic}
-              toggleSfx={toggleSfx}
-              isMobile={isMobile}
-            />
-          )}
+        <div className="app-stage-scaler">
+          <div className="app-stage-content">
+            {view === 'menu' && (
+              <MainMenu
+                onStart={handleStartNewGame}
+                canContinue={localStorage.getItem(PROGRESS_KEY) !== null}
+                onContinue={handleContinue}
+                onOpenLevelSelect={handleOpenLevelSelect}
+                currentLevelId={LEVELS[currentLevelIndex].id}
+                audioSettings={audioSettings}
+                toggleMusic={toggleMusic}
+                toggleSfx={toggleSfx}
+                isMobile={isMobile}
+              />
+            )}
 
-          {view === 'levelSelect' && (
-            <LevelSelect
-              levels={LEVELS}
-              maxReachedIndex={maxReachedLevelIndex}
-              onSelect={handleSelectLevel}
-              onBack={() => setView('menu')}
-              isMobile={isMobile}
-            />
-          )}
+            {view === 'levelSelect' && (
+              <LevelSelect
+                levels={LEVELS}
+                maxReachedIndex={maxReachedLevelIndex}
+                onSelect={handleSelectLevel}
+                onBack={() => setView('menu')}
+                isMobile={isMobile}
+              />
+            )}
 
-          {view === 'game' && (
-            <GameLevel
-              level={LEVELS[currentLevelIndex]}
-              onLevelComplete={handleLevelComplete}
-              onExit={handleExitToMenu}
-              audioSettings={audioSettings}
-              toggleMusic={toggleMusic}
-              toggleSfx={toggleSfx}
-              playRandomSfx={playRandomSfx}
-              isMobile={isMobile}
-              showFullscreenAd={showFullscreenAd}
-              showRewardedVideo={showRewardedVideo}
-            />
-          )}
+            {view === 'game' && (
+              <GameLevel
+                level={LEVELS[currentLevelIndex]}
+                onLevelComplete={handleLevelComplete}
+                onExit={handleExitToMenu}
+                audioSettings={audioSettings}
+                toggleMusic={toggleMusic}
+                toggleSfx={toggleSfx}
+                playRandomSfx={playRandomSfx}
+                isMobile={isMobile}
+                showFullscreenAd={showFullscreenAd}
+                showRewardedVideo={showRewardedVideo}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
