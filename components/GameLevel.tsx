@@ -183,7 +183,10 @@ const GameLevel: React.FC<GameLevelProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-slate-100 relative overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+      <div
+        className="fixed inset-0 w-screen h-screen opacity-[0.03] pointer-events-none z-0"
+        style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }}
+      ></div>
 
       <header className={`flex justify-between items-center bg-white/80 backdrop-blur-md shadow-sm z-[60] ${isMobile ? 'p-2 gap-2' : 'p-4'}`}>
         <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-4'}`}>
@@ -261,10 +264,13 @@ const GameLevel: React.FC<GameLevelProps> = ({
           </div>
         )}
 
-        <div className={`flex-1 flex items-center justify-center ${isMobile ? 'p-2' : 'p-8'}`}>
-           <div className={`relative w-full bg-white/40 backdrop-blur-sm border-4 border-white shadow-[0_10px_30px_rgba(0,0,0,0.03)] overflow-hidden flex items-center justify-center ${isMobile ? 'rounded-2xl min-h-[200px] max-w-full' : 'rounded-[40px] min-h-[450px] max-w-5xl'}`}>
+        <div
+          className={`stage-anchored flex-1 flex justify-center ${isMobile ? 'p-2' : 'p-8'} aspect-[16/9] max-w-full w-full`}
+          style={{ '--stage-content-scale': isMobile ? 0.96 : 0.9 } as React.CSSProperties}
+        >
+           <div className={`stage-anchored-inner relative w-full h-full bg-white/40 backdrop-blur-sm border-4 border-white shadow-[0_10px_30px_rgba(0,0,0,0.03)] overflow-hidden flex items-center justify-center aspect-[16/9] max-h-full ${isMobile ? 'rounded-2xl min-h-[200px]' : 'rounded-[40px] min-h-[450px] max-w-5xl'}`}>
               <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/blueprint.png')]"></div>
-              <div className={`flex flex-wrap items-end justify-center z-10 w-full relative ${isMobile ? 'gap-3 p-3' : 'gap-12 p-12'}`}>
+              <div className={`stage-anchored-grid flex flex-wrap items-end justify-center z-10 w-full relative ${isMobile ? 'gap-3 p-3' : 'gap-12 p-12'}`}>
                 {level.containers.map(def => {
                   const state = containers.find(c => c.id === def.id);
                   return (
