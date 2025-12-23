@@ -13,6 +13,20 @@ declare global {
 let ysdk: SDK | null = null;
 let player: Player | null = null;
 let isInitialized = false;
+let currentLanguage: string | null = null;
+
+const supportedLangs = ['ru', 'en'] as const;
+
+type SupportedLanguage = typeof supportedLangs[number];
+
+const normalizeLang = (lang: string | undefined): SupportedLanguage | null => {
+  if (!lang) return null;
+  const lower = lang.toLowerCase();
+  const base = lower.split('-')[0];
+  if (supportedLangs.includes(lower as SupportedLanguage)) return lower as SupportedLanguage;
+  if (supportedLangs.includes(base as SupportedLanguage)) return base as SupportedLanguage;
+  return null;
+};
 
 // Интерфейс для данных прогресса
 export interface GameProgress {
@@ -211,22 +225,41 @@ export function stopGameplay(): void {
 }
 
 // Получение языка с учетом I18N данных из SDK и браузера
-export function getLanguage(): string {
-  const supportedLangs = ['ru', 'en'];
-
-  const normalizeLang = (lang: string | undefined): string | null => {
-    if (!lang) return null;
-    const lower = lang.toLowerCase();
-    const base = lower.split('-')[0];
-    if (supportedLangs.includes(lower)) return lower;
-    if (supportedLangs.includes(base)) return base;
-    return null;
-  };
+function resolveLanguage(preferredLang?: string): SupportedLanguage {
+  const normalizedPreferred = normalizeLang(preferredLang);
+  if (normalizedPreferred) return normalizedPreferred;
 
   const sdkLang = normalizeLang(ysdk?.environment?.i18n?.lang as string | undefined);
   const browserLang = normalizeLang(typeof navigator !== 'undefined' ? navigator.language || navigator.languages?.[0] : undefined);
 
   return sdkLang || browserLang || supportedLangs[0];
+}
+
+export function getLanguage(): string {
+  return currentLanguage || resolveLanguage();
+}
+
+export async function setInterfaceLanguage(preferredLang?: string): Promise<SupportedLanguage> {
+  const langToSet = resolveLanguage(preferredLang);
+  currentLanguage = langToSet;
+
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = langToSet;
+  }
+
+  const sdk = await initYandexSdk();
+  const i18nApi = (sdk as unknown as { i18n?: { setLang?: (lang: string) => Promise<void> } } | null)?.i18n;
+
+  if (i18nApi && typeof i18nApi.setLang === 'function') {
+    try {
+      await i18nApi.setLang(langToSet);
+      console.log('Interface language set via Yandex SDK:', langToSet);
+    } catch (error) {
+      console.error('Failed to set language via Yandex SDK:', error);
+    }
+  }
+
+  return langToSet;
 }
 
 // Получение SDK

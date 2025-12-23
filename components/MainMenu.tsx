@@ -114,7 +114,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
 
         {!isMobile && (
           <div className="mt-12 text-[10px] font-black text-slate-300 uppercase tracking-widest">
-            Liquid Logic Puzzles • 2025
+            FLL Games • 2025
           </div>
         )}
       </div>
