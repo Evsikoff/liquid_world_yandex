@@ -98,3 +98,177 @@ body {
   0% { background-position: 0 0; }
   100% { background-position: 0 20px; }
 }
+
+/* Loading Screen Styles */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.loading-screen--hiding {
+  opacity: 0;
+  transform: scale(1.05);
+  pointer-events: none;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  z-index: 2;
+}
+
+.loading-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  text-align: center;
+}
+
+.loading-title-word {
+  font-size: clamp(28px, 6vw, 48px);
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  letter-spacing: 2px;
+}
+
+.loading-title-word--accent {
+  font-size: clamp(36px, 8vw, 64px);
+  background: linear-gradient(90deg, #fff 0%, #a5f3fc 50%, #fff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 2s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+/* Animated drops */
+.loading-drops {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.loading-drop {
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4);
+  animation: drop-bounce 0.6s ease-in-out infinite;
+}
+
+.loading-drop--1 { animation-delay: 0s; }
+.loading-drop--2 { animation-delay: 0.2s; }
+.loading-drop--3 { animation-delay: 0.4s; }
+
+@keyframes drop-bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-15px) scale(1.1);
+  }
+}
+
+/* Loading bar */
+.loading-bar {
+  width: clamp(200px, 50vw, 300px);
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.loading-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #a5f3fc, #fff, #a5f3fc);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: loading-progress 1s ease-out forwards, loading-shimmer 0.5s linear infinite;
+}
+
+@keyframes loading-progress {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+@keyframes loading-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Decorative bubbles */
+.loading-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  animation: bubble-float 3s ease-in-out infinite;
+}
+
+.loading-bubble--1 {
+  width: 60px;
+  height: 60px;
+  left: 10%;
+  top: 20%;
+  animation-delay: 0s;
+}
+
+.loading-bubble--2 {
+  width: 40px;
+  height: 40px;
+  right: 15%;
+  top: 30%;
+  animation-delay: 0.5s;
+}
+
+.loading-bubble--3 {
+  width: 80px;
+  height: 80px;
+  left: 20%;
+  bottom: 20%;
+  animation-delay: 1s;
+}
+
+.loading-bubble--4 {
+  width: 30px;
+  height: 30px;
+  right: 25%;
+  bottom: 30%;
+  animation-delay: 1.5s;
+}
+
+.loading-bubble--5 {
+  width: 50px;
+  height: 50px;
+  left: 50%;
+  top: 15%;
+  animation-delay: 0.8s;
+}
+
+@keyframes bubble-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-20px) scale(1.1);
+    opacity: 0.9;
+  }
+}

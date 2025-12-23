@@ -3,6 +3,7 @@ import MainMenu from './components/MainMenu';
 import GameLevel from './components/GameLevel';
 import LevelSelect from './components/LevelSelect';
 import RotateDeviceOverlay from './components/RotateDeviceOverlay';
+import LoadingScreen from './components/LoadingScreen';
 import { useDeviceDetection } from './hooks/useDeviceDetection';
 import { useInterfaceLanguage } from './hooks/useInterfaceLanguage';
 import { LEVELS, AUDIO_ASSETS } from './constants';
@@ -31,10 +32,10 @@ const App: React.FC = () => {
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [maxReachedLevelIndex, setMaxReachedLevelIndex] = useState(0);
   const [stageAspectRatio, setStageAspectRatio] = useState(16 / 9);
+  const [showLoading, setShowLoading] = useState(true);
   const language = useInterfaceLanguage('ru');
 
   const stageRef = useRef<HTMLDivElement | null>(null);
-  const gameReadyCalled = useRef(false);
 
   // Mobile device detection
   const { isMobile, isPortrait } = useDeviceDetection();
@@ -241,13 +242,11 @@ const App: React.FC = () => {
     };
   }, [updateStageScale]);
 
-  // Callback для вызова gameReady когда меню полностью отрисовано
-  const handleMenuRenderComplete = useCallback(() => {
-    if (!gameReadyCalled.current) {
-      gameReadyCalled.current = true;
-      console.log('Menu fully rendered - calling gameReady');
-      gameReady();
-    }
+  // Callback для вызова gameReady после загрузочного экрана
+  const handleLoadingComplete = useCallback(() => {
+    console.log('Loading screen complete - calling gameReady');
+    setShowLoading(false);
+    gameReady();
   }, []);
 
   useEffect(() => {
@@ -407,6 +406,11 @@ const App: React.FC = () => {
 
   return (
     <div className="app-shell" data-lang={language}>
+      {/* Loading screen overlay */}
+      {showLoading && (
+        <LoadingScreen duration={1000} onComplete={handleLoadingComplete} />
+      )}
+
       <div className="app-stage" ref={stageRef}>
         {/* Show rotate overlay on mobile portrait mode */}
         {isMobile && isPortrait && <RotateDeviceOverlay />}
@@ -424,7 +428,6 @@ const App: React.FC = () => {
                 toggleMusic={toggleMusic}
                 toggleSfx={toggleSfx}
                 isMobile={isMobile}
-                onRenderComplete={handleMenuRenderComplete}
               />
             )}
 
