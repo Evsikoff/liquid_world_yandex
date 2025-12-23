@@ -25,12 +25,12 @@ const MainMenu: React.FC<MainMenuProps> = ({
   isMobile = false
 }) => {
   return (
-    <div className={`min-h-screen bg-slate-100 flex items-center justify-center ${isMobile ? 'p-2' : 'p-4'}`}>
+    <div className={`h-full w-full bg-slate-100 flex items-center justify-center relative overflow-hidden ${isMobile ? 'p-2' : 'p-4'}`}>
       {/* Декоративный фон */}
-      <div className="fixed inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+      <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
 
       {/* Аудио Контролы */}
-      <div className={`fixed flex z-50 ${isMobile ? 'top-2 right-2 gap-2' : 'top-6 right-6 gap-3'}`}>
+      <div className={`absolute flex z-50 ${isMobile ? 'top-2 right-2 gap-2' : 'top-6 right-6 gap-3'}`}>
         <button
           onClick={toggleMusic}
           className={`rounded-2xl shadow-lg border-2 transition-all active:scale-90 ${isMobile ? 'p-2' : 'p-3'} ${audioSettings.music ? 'bg-white border-blue-200 text-blue-500' : 'bg-slate-200 border-slate-300 text-slate-400'}`}

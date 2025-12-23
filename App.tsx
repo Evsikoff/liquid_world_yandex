@@ -307,49 +307,53 @@ const App: React.FC = () => {
   };
 
   return (
-    <>
-      {/* Show rotate overlay on mobile portrait mode */}
-      {isMobile && isPortrait && <RotateDeviceOverlay />}
+    <div className="app-shell">
+      <div className="app-stage">
+        {/* Show rotate overlay on mobile portrait mode */}
+        {isMobile && isPortrait && <RotateDeviceOverlay />}
 
-      {view === 'menu' && (
-        <MainMenu
-          onStart={handleStartNewGame}
-          canContinue={localStorage.getItem(PROGRESS_KEY) !== null}
-          onContinue={handleContinue}
-          onOpenLevelSelect={handleOpenLevelSelect}
-          currentLevelId={LEVELS[currentLevelIndex].id}
-          audioSettings={audioSettings}
-          toggleMusic={toggleMusic}
-          toggleSfx={toggleSfx}
-          isMobile={isMobile}
-        />
-      )}
+        <div className="app-stage-content">
+          {view === 'menu' && (
+            <MainMenu
+              onStart={handleStartNewGame}
+              canContinue={localStorage.getItem(PROGRESS_KEY) !== null}
+              onContinue={handleContinue}
+              onOpenLevelSelect={handleOpenLevelSelect}
+              currentLevelId={LEVELS[currentLevelIndex].id}
+              audioSettings={audioSettings}
+              toggleMusic={toggleMusic}
+              toggleSfx={toggleSfx}
+              isMobile={isMobile}
+            />
+          )}
 
-      {view === 'levelSelect' && (
-        <LevelSelect
-          levels={LEVELS}
-          maxReachedIndex={maxReachedLevelIndex}
-          onSelect={handleSelectLevel}
-          onBack={() => setView('menu')}
-          isMobile={isMobile}
-        />
-      )}
+          {view === 'levelSelect' && (
+            <LevelSelect
+              levels={LEVELS}
+              maxReachedIndex={maxReachedLevelIndex}
+              onSelect={handleSelectLevel}
+              onBack={() => setView('menu')}
+              isMobile={isMobile}
+            />
+          )}
 
-      {view === 'game' && (
-        <GameLevel
-          level={LEVELS[currentLevelIndex]}
-          onLevelComplete={handleLevelComplete}
-          onExit={handleExitToMenu}
-          audioSettings={audioSettings}
-          toggleMusic={toggleMusic}
-          toggleSfx={toggleSfx}
-          playRandomSfx={playRandomSfx}
-          isMobile={isMobile}
-          showFullscreenAd={showFullscreenAd}
-          showRewardedVideo={showRewardedVideo}
-        />
-      )}
-    </>
+          {view === 'game' && (
+            <GameLevel
+              level={LEVELS[currentLevelIndex]}
+              onLevelComplete={handleLevelComplete}
+              onExit={handleExitToMenu}
+              audioSettings={audioSettings}
+              toggleMusic={toggleMusic}
+              toggleSfx={toggleSfx}
+              playRandomSfx={playRandomSfx}
+              isMobile={isMobile}
+              showFullscreenAd={showFullscreenAd}
+              showRewardedVideo={showRewardedVideo}
+            />
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
