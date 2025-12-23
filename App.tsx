@@ -12,7 +12,7 @@ import {
   saveCloudData,
   gameReady,
   startGameplay,
-  showFullscreenAd,
+  showFullscreenAd as showFullscreenAdBase,
   showRewardedVideo,
   GameProgress
 } from './services/yandexSdk';
@@ -34,6 +34,7 @@ const App: React.FC = () => {
   const language = useInterfaceLanguage('ru');
 
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const gameReadyCalled = useRef(false);
 
   // Mobile device detection
   const { isMobile, isPortrait } = useDeviceDetection();
@@ -195,9 +196,6 @@ const App: React.FC = () => {
           }
         }
       }
-
-      // Сигнализируем о готовности игры
-      gameReady();
     };
 
     loadProgress();
@@ -243,6 +241,14 @@ const App: React.FC = () => {
     };
   }, [updateStageScale]);
 
+  // Сигнал о готовности игры после отрисовки главного меню и расчёта данных экрана
+  useEffect(() => {
+    if (view === 'menu' && stageRef.current && !gameReadyCalled.current) {
+      gameReadyCalled.current = true;
+      gameReady();
+    }
+  }, [view, stageAspectRatio]);
+
   useEffect(() => {
     const handleVisibilityChange = () => {
       updateMusicGainForVisibility();
@@ -278,6 +284,17 @@ const App: React.FC = () => {
     const randomUrl = variants[Math.floor(Math.random() * variants.length)];
     playSfx(randomUrl);
   }, [audioSettings.sfx, playSfx]);
+
+  // Показ полноэкранной рекламы с управлением звуком при переключении вкладки
+  const showFullscreenAd = useCallback(() => {
+    return showFullscreenAdBase({
+      onVisibilityChange: (isHidden) => {
+        if (musicGainRef.current) {
+          musicGainRef.current.gain.value = isHidden ? 0 : (audioSettings.music ? 1 : 0);
+        }
+      }
+    });
+  }, [audioSettings.music]);
 
   const toggleMusic = () => {
     setAudioSettings(prev => {

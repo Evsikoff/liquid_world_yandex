@@ -138,14 +138,39 @@ export async function saveCloudData(progress: GameProgress): Promise<boolean> {
   }
 }
 
+// Интерфейс для колбэков полноэкранной рекламы
+export interface FullscreenAdCallbacks {
+  onVisibilityChange?: (isHidden: boolean) => void;
+}
+
 // Показ полноэкранной рекламы
-export function showFullscreenAd(): Promise<boolean> {
+export function showFullscreenAd(callbacks?: FullscreenAdCallbacks): Promise<boolean> {
   return new Promise((resolve) => {
     if (!ysdk) {
       console.warn('SDK not initialized, skipping fullscreen ad');
       resolve(false);
       return;
     }
+
+    // Обработчик изменения видимости вкладки
+    const handleVisibilityChange = () => {
+      const isHidden = document.visibilityState === 'hidden';
+      callbacks?.onVisibilityChange?.(isHidden);
+    };
+
+    // Добавляем слушатель при открытии рекламы
+    const addVisibilityListener = () => {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      // Сразу проверяем текущее состояние
+      handleVisibilityChange();
+    };
+
+    // Удаляем слушатель при закрытии рекламы
+    const removeVisibilityListener = () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      // Восстанавливаем звук при закрытии рекламы
+      callbacks?.onVisibilityChange?.(false);
+    };
 
     // Останавливаем геймплей перед рекламой
     stopGameplay();
@@ -154,15 +179,18 @@ export function showFullscreenAd(): Promise<boolean> {
       callbacks: {
         onOpen: () => {
           console.log('Fullscreen ad opened');
+          addVisibilityListener();
         },
         onClose: (wasShown) => {
           console.log('Fullscreen ad closed, wasShown:', wasShown);
+          removeVisibilityListener();
           // Возобновляем геймплей после рекламы
           startGameplay();
           resolve(wasShown);
         },
         onError: (error) => {
           console.error('Fullscreen ad error:', error);
+          removeVisibilityListener();
           // Возобновляем геймплей даже при ошибке
           startGameplay();
           resolve(false);
