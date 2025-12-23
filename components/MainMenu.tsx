@@ -30,40 +30,69 @@ const MainMenu: React.FC<MainMenuProps> = ({
   const renderCompleteCalled = useRef(false);
   const lastSizeRef = useRef<{ width: number; height: number } | null>(null);
   const stabilityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const maxTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Вызов onRenderComplete с защитой от повторного вызова
+  const triggerRenderComplete = useCallback((reason: string) => {
+    if (renderCompleteCalled.current || !onRenderComplete) return;
+
+    renderCompleteCalled.current = true;
+
+    // Очищаем все таймеры
+    if (stabilityTimerRef.current) {
+      clearTimeout(stabilityTimerRef.current);
+      stabilityTimerRef.current = null;
+    }
+    if (maxTimeoutRef.current) {
+      clearTimeout(maxTimeoutRef.current);
+      maxTimeoutRef.current = null;
+    }
+
+    console.log(`MainMenu render complete - ${reason}`);
+    onRenderComplete();
+  }, [onRenderComplete]);
 
   const checkStability = useCallback(() => {
     if (renderCompleteCalled.current || !onRenderComplete) return;
 
-    // Clear previous timer
+    // Clear previous stability timer
     if (stabilityTimerRef.current) {
       clearTimeout(stabilityTimerRef.current);
     }
 
-    // Wait 200ms after last size change to confirm stability
+    // Wait 500ms after last significant size change to confirm stability
     stabilityTimerRef.current = setTimeout(() => {
-      if (!renderCompleteCalled.current && onRenderComplete) {
-        renderCompleteCalled.current = true;
-        console.log('MainMenu render complete - size stabilized');
-        onRenderComplete();
-      }
-    }, 200);
-  }, [onRenderComplete]);
+      triggerRenderComplete('size stabilized for 500ms');
+    }, 500);
+  }, [onRenderComplete, triggerRenderComplete]);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || !onRenderComplete) return;
+
+    // Максимальный таймаут 3 секунды - гарантированно вызовем ready
+    maxTimeoutRef.current = setTimeout(() => {
+      triggerRenderComplete('max timeout reached (3s)');
+    }, 3000);
 
     const observer = new ResizeObserver((entries) => {
+      if (renderCompleteCalled.current) return;
+
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
         const currentSize = { width: Math.round(width), height: Math.round(height) };
 
-        // Check if size actually changed
+        // Проверяем значительное изменение размера (threshold 20px)
         if (lastSizeRef.current) {
-          if (currentSize.width !== lastSizeRef.current.width ||
-              currentSize.height !== lastSizeRef.current.height) {
-            console.log('MainMenu size changed:', lastSizeRef.current, '->', currentSize);
+          const widthDiff = Math.abs(currentSize.width - lastSizeRef.current.width);
+          const heightDiff = Math.abs(currentSize.height - lastSizeRef.current.height);
+
+          // Игнорируем мелкие изменения (меньше 20px)
+          if (widthDiff < 20 && heightDiff < 20) {
+            return;
           }
+
+          console.log('MainMenu significant size change:', lastSizeRef.current, '->', currentSize);
         } else {
           console.log('MainMenu initial size:', currentSize);
         }
@@ -75,7 +104,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
 
     observer.observe(container);
 
-    // Also trigger initial stability check after first render
+    // Запускаем первичную проверку стабильности
     checkStability();
 
     return () => {
@@ -83,8 +112,11 @@ const MainMenu: React.FC<MainMenuProps> = ({
       if (stabilityTimerRef.current) {
         clearTimeout(stabilityTimerRef.current);
       }
+      if (maxTimeoutRef.current) {
+        clearTimeout(maxTimeoutRef.current);
+      }
     };
-  }, [checkStability]);
+  }, [checkStability, onRenderComplete, triggerRenderComplete]);
 
   return (
     <div ref={containerRef} className={`h-full w-full bg-slate-100 flex items-center justify-center relative overflow-hidden ${isMobile ? 'p-2' : 'p-4'}`}>
