@@ -16,14 +16,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: clamp(8px, 1vw, 16px);
 }
 
 .app-stage {
   --stage-scale: 1;
   position: relative;
-  width: min(100vw - 24px, (16 / 9) * (100vh - 24px));
-  height: min(100vh - 24px, (9 / 16) * (100vw - 24px));
+  width: min(100vw, calc((16 / 9) * 100vh));
+  height: min(100vh, calc((9 / 16) * 100vw));
   aspect-ratio: 16 / 9;
   background: rgba(255, 255, 255, 0.8);
   border-radius: 24px;
@@ -48,7 +48,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(8px, 1vw, 16px);
+  padding: clamp(6px, 0.8vw, 14px);
   box-sizing: border-box;
 }
 
