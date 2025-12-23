@@ -183,7 +183,10 @@ const GameLevel: React.FC<GameLevelProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-slate-100 relative overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+      <div
+        className="fixed inset-0 w-screen h-screen opacity-[0.03] pointer-events-none z-0"
+        style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }}
+      ></div>
 
       <header className={`flex justify-between items-center bg-white/80 backdrop-blur-md shadow-sm z-[60] ${isMobile ? 'p-2 gap-2' : 'p-4'}`}>
         <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-4'}`}>
