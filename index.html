@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Занимательные жидкости</title>
+    <!-- Yandex Games SDK -->
+    <script src="https://yandex.ru/games/sdk/v2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       /* Custom animation for liquid movement */
@@ -29,8 +31,43 @@
 }
 </script>
 </head>
-  <body>
+  <body oncontextmenu="return false;">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
+    <script>
+      // Блокировка правой кнопки мыши
+      document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+      });
+
+      // Блокировка контекстного меню на мобильных устройствах (долгий тап)
+      document.addEventListener('touchstart', function(e) {
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      let touchTimer = null;
+      document.addEventListener('touchstart', function(e) {
+        touchTimer = setTimeout(function() {
+          // Предотвращаем контекстное меню при долгом тапе
+        }, 500);
+      }, { passive: true });
+
+      document.addEventListener('touchend', function(e) {
+        if (touchTimer) {
+          clearTimeout(touchTimer);
+          touchTimer = null;
+        }
+      }, { passive: true });
+
+      document.addEventListener('touchmove', function(e) {
+        if (touchTimer) {
+          clearTimeout(touchTimer);
+          touchTimer = null;
+        }
+      }, { passive: true });
+    </script>
   </body>
 </html>

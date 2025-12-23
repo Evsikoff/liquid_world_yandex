@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Level, ContainerState } from '../types';
 import Container from './Container';
 import Modal from './Modal';
 import { RotateCcw, Info, Droplets, Undo2, LogOut, Lightbulb, Lock, ChevronRight, Trash2, Music, Volume2, VolumeX } from 'lucide-react';
+import { stopGameplay, startGameplay } from '../services/yandexSdk';
 
 interface GameLevelProps {
   level: Level;
@@ -13,6 +14,8 @@ interface GameLevelProps {
   toggleSfx: () => void;
   playRandomSfx: (type: 'transfer' | 'sink' | 'tap') => void;
   isMobile?: boolean;
+  showFullscreenAd: () => Promise<boolean>;
+  showRewardedVideo: () => Promise<boolean>;
 }
 
 const GameLevel: React.FC<GameLevelProps> = ({
@@ -23,7 +26,9 @@ const GameLevel: React.FC<GameLevelProps> = ({
   toggleMusic,
   toggleSfx,
   playRandomSfx,
-  isMobile = false
+  isMobile = false,
+  showFullscreenAd,
+  showRewardedVideo
 }) => {
   const [containers, setContainers] = useState<ContainerState[]>([]);
   const [history, setHistory] = useState<ContainerState[][]>([]);
@@ -57,7 +62,11 @@ const GameLevel: React.FC<GameLevelProps> = ({
       return container && container.currentAmount === target.amount;
     });
     if (isWin && containers.length > 0) {
-      setTimeout(() => setShowWinModal(true), 600);
+      setTimeout(() => {
+        // Останавливаем геймплей при показе модального окна победы
+        stopGameplay();
+        setShowWinModal(true);
+      }, 600);
     }
   }, [containers, level.targets, isPouring]);
 
@@ -199,7 +208,9 @@ const GameLevel: React.FC<GameLevelProps> = ({
           {!isMobile && <div className="w-px h-8 bg-slate-200 mx-1"></div>}
 
           <button
-            onClick={() => {
+            onClick={async () => {
+              // Показываем полноэкранную рекламу перед открытием подсказки
+              await showFullscreenAd();
               setShowHintModal(true);
               if (revealedHintsCount === 0) setRevealedHintsCount(1);
             }}
@@ -303,7 +314,11 @@ const GameLevel: React.FC<GameLevelProps> = ({
       </Modal>
 
       <Modal title="Победа!" isOpen={showWinModal} isMobile={isMobile} actions={
-        <button onClick={onLevelComplete} className={`bg-green-500 hover:bg-green-600 text-white font-bold rounded-full shadow-lg ${isMobile ? 'px-5 py-2 text-sm' : 'px-8 py-3 text-lg'}`}>
+        <button onClick={async () => {
+          // Показываем полноэкранную рекламу перед переходом на следующий уровень
+          await showFullscreenAd();
+          onLevelComplete();
+        }} className={`bg-green-500 hover:bg-green-600 text-white font-bold rounded-full shadow-lg ${isMobile ? 'px-5 py-2 text-sm' : 'px-8 py-3 text-lg'}`}>
           Далее
         </button>
       }>
@@ -347,7 +362,13 @@ const GameLevel: React.FC<GameLevelProps> = ({
               ))}
             </div>
             <div className={`bg-white border-t flex justify-center ${isMobile ? 'p-3 gap-2' : 'p-6 gap-4'}`}>
-              <button disabled={revealedHintsCount >= level.solutionSteps.length} onClick={() => setRevealedHintsCount(prev => prev + 1)} className={`flex items-center rounded-full font-bold transition-all ${isMobile ? 'gap-1 px-3 py-2 text-xs' : 'gap-2 px-6 py-3 text-lg'} ${revealedHintsCount >= level.solutionSteps.length ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg active:scale-95'}`}>
+              <button disabled={revealedHintsCount >= level.solutionSteps.length} onClick={async () => {
+                // Показываем видео-рекламу перед открытием следующего шага
+                const rewarded = await showRewardedVideo();
+                if (rewarded) {
+                  setRevealedHintsCount(prev => prev + 1);
+                }
+              }} className={`flex items-center rounded-full font-bold transition-all ${isMobile ? 'gap-1 px-3 py-2 text-xs' : 'gap-2 px-6 py-3 text-lg'} ${revealedHintsCount >= level.solutionSteps.length ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg active:scale-95'}`}>
                 {isMobile ? 'Ещё шаг' : 'Открыть еще один шаг'} <ChevronRight size={isMobile ? 14 : 20} />
               </button>
             </div>
