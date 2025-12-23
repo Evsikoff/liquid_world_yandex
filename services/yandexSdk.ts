@@ -210,10 +210,23 @@ export function stopGameplay(): void {
   }
 }
 
-// Получение языка (автоопределение как русский)
+// Получение языка с учетом I18N данных из SDK и браузера
 export function getLanguage(): string {
-  // Автоопределение языка как русский
-  return 'ru';
+  const supportedLangs = ['ru', 'en'];
+
+  const normalizeLang = (lang: string | undefined): string | null => {
+    if (!lang) return null;
+    const lower = lang.toLowerCase();
+    const base = lower.split('-')[0];
+    if (supportedLangs.includes(lower)) return lower;
+    if (supportedLangs.includes(base)) return base;
+    return null;
+  };
+
+  const sdkLang = normalizeLang(ysdk?.environment?.i18n?.lang as string | undefined);
+  const browserLang = normalizeLang(typeof navigator !== 'undefined' ? navigator.language || navigator.languages?.[0] : undefined);
+
+  return sdkLang || browserLang || supportedLangs[0];
 }
 
 // Получение SDK

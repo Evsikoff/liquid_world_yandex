@@ -12,7 +12,7 @@ interface LevelSelectProps {
 
 const LevelSelect: React.FC<LevelSelectProps> = ({ levels, maxReachedIndex, onSelect, onBack, isMobile = false }) => {
   return (
-    <div className={`min-h-screen bg-slate-100 flex items-center justify-center ${isMobile ? 'p-2' : 'p-4'}`}>
+    <div className={`h-full w-full bg-slate-100 flex items-center justify-center relative ${isMobile ? 'p-2' : 'p-4'}`}>
       <div className={`bg-white shadow-2xl w-full transform transition-all duration-500 ${isMobile ? 'rounded-2xl p-3 max-w-full' : 'rounded-[40px] p-8 max-w-2xl'}`}>
         <div className={`flex items-center ${isMobile ? 'gap-2 mb-3' : 'gap-4 mb-8'}`}>
           <button
