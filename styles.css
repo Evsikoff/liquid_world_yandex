@@ -8,6 +8,7 @@ body {
   background: radial-gradient(circle at 20% 20%, #e0f2fe 0, transparent 25%),
     radial-gradient(circle at 80% 0%, #e2e8f0 0, transparent 20%),
     linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  overflow: hidden;
 }
 
 .app-shell {
