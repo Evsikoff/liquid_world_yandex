@@ -4,6 +4,7 @@ import GameLevel from './components/GameLevel';
 import LevelSelect from './components/LevelSelect';
 import RotateDeviceOverlay from './components/RotateDeviceOverlay';
 import { useDeviceDetection } from './hooks/useDeviceDetection';
+import { useInterfaceLanguage } from './hooks/useInterfaceLanguage';
 import { LEVELS, AUDIO_ASSETS } from './constants';
 import {
   initYandexSdk,
@@ -30,6 +31,7 @@ const App: React.FC = () => {
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [maxReachedLevelIndex, setMaxReachedLevelIndex] = useState(0);
   const [stageAspectRatio, setStageAspectRatio] = useState(16 / 9);
+  const language = useInterfaceLanguage('ru');
 
   const stageRef = useRef<HTMLDivElement | null>(null);
 
@@ -335,7 +337,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-lang={language}>
       <div className="app-stage" ref={stageRef}>
         {/* Show rotate overlay on mobile portrait mode */}
         {isMobile && isPortrait && <RotateDeviceOverlay />}
