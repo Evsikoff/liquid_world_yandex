@@ -5,6 +5,16 @@ import LevelSelect from './components/LevelSelect';
 import RotateDeviceOverlay from './components/RotateDeviceOverlay';
 import { useDeviceDetection } from './hooks/useDeviceDetection';
 import { LEVELS, AUDIO_ASSETS } from './constants';
+import {
+  initYandexSdk,
+  getCloudData,
+  saveCloudData,
+  gameReady,
+  startGameplay,
+  showFullscreenAd,
+  showRewardedVideo,
+  GameProgress
+} from './services/yandexSdk';
 
 const PROGRESS_KEY = 'liquid_puzzle_v2_progress';
 const MAX_LEVEL_KEY = 'liquid_puzzle_v2_max_level';
@@ -114,29 +124,52 @@ const App: React.FC = () => {
 
   // Load progress and audio settings on mount
   useEffect(() => {
-    const savedCurrent = localStorage.getItem(PROGRESS_KEY);
-    const savedMax = localStorage.getItem(MAX_LEVEL_KEY);
-    const savedAudio = localStorage.getItem(AUDIO_SETTINGS_KEY);
+    const loadProgress = async () => {
+      // Сначала инициализируем Yandex SDK
+      await initYandexSdk();
 
-    if (savedMax) {
-      const maxIdx = parseInt(savedMax, 10);
-      setMaxReachedLevelIndex(isNaN(maxIdx) ? 0 : maxIdx);
-    }
+      // Пробуем загрузить из облачных сохранений
+      const cloudData = await getCloudData();
 
-    if (savedCurrent) {
-      const currentIdx = parseInt(savedCurrent, 10);
-      if (!isNaN(currentIdx) && currentIdx < LEVELS.length) {
-        setCurrentLevelIndex(currentIdx);
+      if (cloudData) {
+        // Используем облачные данные
+        console.log('Loaded progress from cloud:', cloudData);
+        setCurrentLevelIndex(cloudData.currentLevel);
+        setMaxReachedLevelIndex(cloudData.maxLevel);
+        setAudioSettings(cloudData.audioSettings);
+      } else {
+        // Фолбэк на localStorage
+        console.log('No cloud data, falling back to localStorage');
+        const savedCurrent = localStorage.getItem(PROGRESS_KEY);
+        const savedMax = localStorage.getItem(MAX_LEVEL_KEY);
+        const savedAudio = localStorage.getItem(AUDIO_SETTINGS_KEY);
+
+        if (savedMax) {
+          const maxIdx = parseInt(savedMax, 10);
+          setMaxReachedLevelIndex(isNaN(maxIdx) ? 0 : maxIdx);
+        }
+
+        if (savedCurrent) {
+          const currentIdx = parseInt(savedCurrent, 10);
+          if (!isNaN(currentIdx) && currentIdx < LEVELS.length) {
+            setCurrentLevelIndex(currentIdx);
+          }
+        }
+
+        if (savedAudio) {
+          try {
+            setAudioSettings(JSON.parse(savedAudio));
+          } catch (e) {
+            console.error("Failed to parse audio settings");
+          }
+        }
       }
-    }
 
-    if (savedAudio) {
-      try {
-        setAudioSettings(JSON.parse(savedAudio));
-      } catch (e) {
-        console.error("Failed to parse audio settings");
-      }
-    }
+      // Сигнализируем о готовности игры
+      gameReady();
+    };
+
+    loadProgress();
 
     // Preload audio files
     const preloadAudio = async () => {
@@ -202,12 +235,21 @@ const App: React.FC = () => {
     });
   };
 
-  const saveProgress = (currentIdx: number, maxIdx: number) => {
+  const saveProgress = useCallback((currentIdx: number, maxIdx: number) => {
+    // Сохраняем в localStorage
     localStorage.setItem(PROGRESS_KEY, currentIdx.toString());
     const newMax = Math.max(maxReachedLevelIndex, maxIdx);
     setMaxReachedLevelIndex(newMax);
     localStorage.setItem(MAX_LEVEL_KEY, newMax.toString());
-  };
+
+    // Сохраняем в облачные сохранения Яндекса
+    const progress: GameProgress = {
+      currentLevel: currentIdx,
+      maxLevel: newMax,
+      audioSettings: audioSettings
+    };
+    saveCloudData(progress);
+  }, [maxReachedLevelIndex, audioSettings]);
 
   const handleStartNewGame = () => {
     initAudioContext(); // Ensure audio context is ready
@@ -226,11 +268,13 @@ const App: React.FC = () => {
     setMaxReachedLevelIndex(0);
     saveProgress(0, 0);
     setView('game');
+    startGameplay();
   };
 
   const handleContinue = () => {
     initAudioContext();
     setView('game');
+    startGameplay();
   };
 
   const handleOpenLevelSelect = () => {
@@ -242,6 +286,7 @@ const App: React.FC = () => {
     setCurrentLevelIndex(index);
     saveProgress(index, index);
     setView('game');
+    startGameplay();
   };
 
   const handleLevelComplete = () => {
@@ -300,6 +345,8 @@ const App: React.FC = () => {
           toggleSfx={toggleSfx}
           playRandomSfx={playRandomSfx}
           isMobile={isMobile}
+          showFullscreenAd={showFullscreenAd}
+          showRewardedVideo={showRewardedVideo}
         />
       )}
     </>
