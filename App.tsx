@@ -241,13 +241,17 @@ const App: React.FC = () => {
     };
   }, [updateStageScale]);
 
-  // Callback для вызова gameReady когда меню полностью отрисовано
-  const handleMenuRenderComplete = useCallback(() => {
-    if (!gameReadyCalled.current) {
-      gameReadyCalled.current = true;
-      console.log('Menu fully rendered - calling gameReady');
-      gameReady();
-    }
+  // Вызов gameReady через таймер после запуска игры
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!gameReadyCalled.current) {
+        gameReadyCalled.current = true;
+        console.log('Timer elapsed - calling gameReady');
+        gameReady();
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -424,7 +428,6 @@ const App: React.FC = () => {
                 toggleMusic={toggleMusic}
                 toggleSfx={toggleSfx}
                 isMobile={isMobile}
-                onRenderComplete={handleMenuRenderComplete}
               />
             )}
 
