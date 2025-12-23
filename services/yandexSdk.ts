@@ -47,6 +47,18 @@ export async function initYandexSdk(): Promise<SDK | null> {
   try {
     if (typeof window !== 'undefined' && window.YaGames) {
       ysdk = await window.YaGames.init();
+      const environmentLang = (
+        ysdk as unknown as { environment?: { i18n?: { lang?: string } } } | null
+      )?.environment?.i18n?.lang;
+
+      if (environmentLang) {
+        const normalizedEnvLang = normalizeLang(environmentLang);
+        if (normalizedEnvLang) {
+          currentLanguage = normalizedEnvLang;
+        }
+        console.log('Yandex environment language detected:', environmentLang);
+      }
+
       isInitialized = true;
       console.log('Yandex SDK initialized successfully');
       return ysdk;
