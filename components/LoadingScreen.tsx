@@ -9,16 +9,19 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   duration = 1000,
   onComplete
 }) => {
-  const [isHiding, setIsHiding] = useState(false);
+  const [phase, setPhase] = useState<'visible' | 'hiding' | 'hidden'>('visible');
 
   useEffect(() => {
+    // Начинаем fade-out после duration
     const hideTimer = setTimeout(() => {
-      setIsHiding(true);
+      setPhase('hiding');
     }, duration);
 
+    // Вызываем onComplete и полностью скрываем после анимации
     const completeTimer = setTimeout(() => {
       onComplete();
-    }, duration + 400); // Wait for fade out animation
+      setPhase('hidden');
+    }, duration + 400);
 
     return () => {
       clearTimeout(hideTimer);
@@ -26,8 +29,13 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
     };
   }, [duration, onComplete]);
 
+  // Полностью скрытый - используем display: none чтобы не влиять на layout
+  if (phase === 'hidden') {
+    return <div className="loading-screen loading-screen--hidden" />;
+  }
+
   return (
-    <div className={`loading-screen ${isHiding ? 'loading-screen--hiding' : ''}`}>
+    <div className={`loading-screen ${phase === 'hiding' ? 'loading-screen--hiding' : ''}`}>
       <div className="loading-content">
         {/* Animated liquid drops */}
         <div className="loading-drops">

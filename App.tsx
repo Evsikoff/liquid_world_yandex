@@ -32,7 +32,6 @@ const App: React.FC = () => {
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [maxReachedLevelIndex, setMaxReachedLevelIndex] = useState(0);
   const [stageAspectRatio, setStageAspectRatio] = useState(16 / 9);
-  const [showLoading, setShowLoading] = useState(true);
   const language = useInterfaceLanguage('ru');
 
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -245,7 +244,6 @@ const App: React.FC = () => {
   // Callback для вызова gameReady после загрузочного экрана
   const handleLoadingComplete = useCallback(() => {
     console.log('Loading screen complete - calling gameReady');
-    setShowLoading(false);
     gameReady();
   }, []);
 
@@ -406,10 +404,8 @@ const App: React.FC = () => {
 
   return (
     <div className="app-shell" data-lang={language}>
-      {/* Loading screen overlay */}
-      {showLoading && (
-        <LoadingScreen duration={1000} onComplete={handleLoadingComplete} />
-      )}
+      {/* Loading screen overlay - всегда в DOM, скрывается через CSS */}
+      <LoadingScreen duration={1000} onComplete={handleLoadingComplete} />
 
       <div className="app-stage" ref={stageRef}>
         {/* Show rotate overlay on mobile portrait mode */}
