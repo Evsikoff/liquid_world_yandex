@@ -78,7 +78,11 @@ body {
 }
 
 .stage-anchored-grid {
-  height: 100%;
+  --stage-grid-aspect: 16 / 9;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--stage-grid-aspect);
+  max-height: 100%;
 }
 
 /* Custom animation for liquid movement */

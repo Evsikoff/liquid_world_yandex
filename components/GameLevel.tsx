@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Level, ContainerState } from '../types';
 import Container from './Container';
 import Modal from './Modal';
@@ -40,6 +40,9 @@ const GameLevel: React.FC<GameLevelProps> = ({
   const [showHintModal, setShowHintModal] = useState(false);
   const [revealedHintsCount, setRevealedHintsCount] = useState(0);
   const [isPouring, setIsPouring] = useState(false);
+  const sinkRef = useRef<HTMLDivElement | null>(null);
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const [sinkLift, setSinkLift] = useState(0);
 
   useEffect(() => {
     const initialStates = level.containers.map(c => ({
@@ -52,7 +55,30 @@ const GameLevel: React.FC<GameLevelProps> = ({
     setShowGoalModal(true);
     setShowWinModal(false);
     setRevealedHintsCount(0);
+    setSinkLift(0);
   }, [level]);
+
+  const repositionSinkIfNeeded = useCallback(() => {
+    if (!level.hasSinkAndTap || !sinkRef.current) {
+      setSinkLift(0);
+      return;
+    }
+
+    const rect = sinkRef.current.getBoundingClientRect();
+    const overflow = rect.bottom - window.innerHeight;
+    const lift = overflow > 0 ? overflow + 12 : 0;
+    setSinkLift(lift);
+  }, [level.hasSinkAndTap]);
+
+  useEffect(() => {
+    repositionSinkIfNeeded();
+  }, [repositionSinkIfNeeded, stageAspectRatio, isMobile]);
+
+  useEffect(() => {
+    const handleResize = () => repositionSinkIfNeeded();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [repositionSinkIfNeeded]);
 
   useEffect(() => {
     if (isPouring) return;
@@ -183,6 +209,17 @@ const GameLevel: React.FC<GameLevelProps> = ({
   const isTapSuggested = selectedContainer && selectedDef && selectedContainer.currentAmount < selectedDef.capacity;
   const isSinkSuggested = selectedContainer && selectedDef && selectedContainer.currentAmount > 0;
 
+  const sinkAwareContentScale = Math.max(
+    0.78,
+    (level.hasSinkAndTap ? (isMobile ? 0.9 : 0.92) : isMobile ? 0.96 : 0.9) - Math.min(0.1, sinkLift / 600)
+  );
+  const gridAspectRatio = Number(
+    (
+      stageAspectRatio +
+      (level.hasSinkAndTap ? 0.35 + Math.min(0.3, sinkLift / 300) : 0)
+    ).toFixed(3)
+  );
+
   return (
     <div className="flex flex-col h-full bg-slate-100 relative overflow-hidden">
       <div
@@ -268,7 +305,7 @@ const GameLevel: React.FC<GameLevelProps> = ({
 
         <div
           className={`stage-anchored flex-1 flex justify-center ${isMobile ? 'p-2' : 'p-8'} max-w-full w-full`}
-          style={{ '--stage-content-scale': isMobile ? 0.96 : 0.9, aspectRatio: stageAspectRatio } as React.CSSProperties}
+          style={{ '--stage-content-scale': sinkAwareContentScale, aspectRatio: stageAspectRatio } as React.CSSProperties}
         >
            <div
              className={`stage-anchored-inner relative w-full h-full bg-white/40 backdrop-blur-sm border-4 border-white shadow-[0_10px_30px_rgba(0,0,0,0.03)] overflow-hidden flex items-center justify-center max-h-full ${isMobile ? 'rounded-2xl min-h-[200px]' : 'rounded-[40px] min-h-[450px] max-w-5xl'}`}
@@ -278,6 +315,8 @@ const GameLevel: React.FC<GameLevelProps> = ({
               <div
                 className={`stage-anchored-grid flex flex-wrap items-end justify-center z-10 w-full relative ${isMobile ? 'gap-3 p-3' : 'gap-12 p-12'}`}
                 data-testid={level.hasSinkAndTap ? 'containers-with-sink' : 'containers-no-sink'}
+                style={{ '--stage-grid-aspect': gridAspectRatio } as React.CSSProperties}
+                ref={gridRef}
               >
                 {level.containers.map(def => {
                   const state = containers.find(c => c.id === def.id);
@@ -302,6 +341,8 @@ const GameLevel: React.FC<GameLevelProps> = ({
           className={`w-full flex flex-col items-center transition-opacity duration-500 ${level.hasSinkAndTap ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
           data-testid="sink-control"
           data-visibility={level.hasSinkAndTap ? 'sink-available' : 'sink-hidden'}
+          ref={sinkRef}
+          style={{ transform: sinkLift ? `translateY(-${sinkLift}px)` : undefined }}
         >
           <div className="relative w-full flex flex-col items-center">
             <div className={`relative w-full bg-slate-200 border-x-8 border-t-8 shadow-inner flex items-center justify-center overflow-hidden transition-all duration-500 z-30 ${isMobile ? 'max-w-sm h-16 rounded-t-[50px]' : 'max-w-2xl h-32 rounded-t-[100px]'} ${selectedId === 'SINK' || isSinkSuggested ? 'border-red-400 bg-red-50 shadow-[inset_0_0_30px_rgba(248,113,113,0.15)]' : 'border-slate-300'}`}>
