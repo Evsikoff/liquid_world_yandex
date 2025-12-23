@@ -1,27 +1,31 @@
 import { Level } from './types';
 
+// Вспомогательный хелпер для корректной работы путей в билде,
+// который может разворачиваться не из корня домена (например, на Яндекс Играх)
+const withBase = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
+
 // Пути к вашим локальным файлам в репозитории
 // Создайте папку /audio/ в корне и разложите файлы по этим путям
 export const AUDIO_ASSETS = {
   music: {
-    menu: '/audio/music/menu_theme.mp3',
-    game: '/audio/music/game_ambient.mp3',
+    menu: withBase('audio/music/menu_theme.mp3'),
+    game: withBase('audio/music/game_ambient.mp3'),
   },
   sfx: {
     transfer: [
-      '/audio/sfx/pour_1.mp3',
-      '/audio/sfx/pour_2.mp3',
-      '/audio/sfx/pour_3.mp3',
+      withBase('audio/sfx/pour_1.mp3'),
+      withBase('audio/sfx/pour_2.mp3'),
+      withBase('audio/sfx/pour_3.mp3'),
     ],
     sink: [
-      '/audio/sfx/sink_1.mp3',
-      '/audio/sfx/sink_2.mp3',
-      '/audio/sfx/sink_3.mp3',
+      withBase('audio/sfx/sink_1.mp3'),
+      withBase('audio/sfx/sink_2.mp3'),
+      withBase('audio/sfx/sink_3.mp3'),
     ],
     tap: [
-      '/audio/sfx/tap_1.mp3',
-      '/audio/sfx/tap_2.mp3',
-      '/audio/sfx/tap_3.mp3',
+      withBase('audio/sfx/tap_1.mp3'),
+      withBase('audio/sfx/tap_2.mp3'),
+      withBase('audio/sfx/tap_3.mp3'),
     ]
   }
 };
