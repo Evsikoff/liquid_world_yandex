@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* Custom animation for liquid movement */
+.liquid-transition {
+  transition: height 0.6s ease-in-out;
+}
+
+.stream {
+  animation: flow 0.5s infinite linear;
+}
+
+@keyframes flow {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 20px; }
+}
