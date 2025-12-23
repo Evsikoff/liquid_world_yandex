@@ -60,20 +60,34 @@ const App: React.FC = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioBuffersRef = useRef<AudioBufferCache>({});
   const currentMusicSourceRef = useRef<AudioBufferSourceNode | null>(null);
-  const gainNodeRef = useRef<GainNode | null>(null);
+  const masterGainRef = useRef<GainNode | null>(null);
+  const musicGainRef = useRef<GainNode | null>(null);
+  const sfxGainRef = useRef<GainNode | null>(null);
+
+  const updateMusicGainForVisibility = useCallback(() => {
+    if (!musicGainRef.current) return;
+    const shouldMute = document.visibilityState === 'hidden' || !audioSettings.music;
+    musicGainRef.current.gain.value = shouldMute ? 0 : 1;
+  }, [audioSettings.music]);
 
   // Initialize AudioContext on first user interaction
   const initAudioContext = useCallback(() => {
     if (!audioContextRef.current) {
       audioContextRef.current = new AudioContext();
-      gainNodeRef.current = audioContextRef.current.createGain();
-      gainNodeRef.current.connect(audioContextRef.current.destination);
+      masterGainRef.current = audioContextRef.current.createGain();
+      musicGainRef.current = audioContextRef.current.createGain();
+      sfxGainRef.current = audioContextRef.current.createGain();
+
+      musicGainRef.current.connect(masterGainRef.current);
+      sfxGainRef.current.connect(masterGainRef.current);
+      masterGainRef.current.connect(audioContextRef.current.destination);
+      updateMusicGainForVisibility();
     }
     if (audioContextRef.current.state === 'suspended') {
       audioContextRef.current.resume();
     }
     return audioContextRef.current;
-  }, []);
+  }, [updateMusicGainForVisibility]);
 
   // Load audio file into buffer
   const loadAudioBuffer = useCallback(async (url: string): Promise<AudioBuffer | null> => {
@@ -98,7 +112,7 @@ const App: React.FC = () => {
   const playMusic = useCallback(async (url: string) => {
     const ctx = initAudioContext();
     const buffer = await loadAudioBuffer(url);
-    if (!buffer || !gainNodeRef.current) return;
+    if (!buffer || !musicGainRef.current) return;
 
     // Stop current music
     if (currentMusicSourceRef.current) {
@@ -109,7 +123,7 @@ const App: React.FC = () => {
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     source.loop = true;
-    source.connect(gainNodeRef.current);
+    source.connect(musicGainRef.current);
     source.start(0);
     currentMusicSourceRef.current = source;
   }, [initAudioContext, loadAudioBuffer]);
@@ -131,11 +145,11 @@ const App: React.FC = () => {
   const playSfx = useCallback(async (url: string) => {
     const ctx = initAudioContext();
     const buffer = await loadAudioBuffer(url);
-    if (!buffer || !gainNodeRef.current) return;
+    if (!buffer || !sfxGainRef.current) return;
 
     const source = ctx.createBufferSource();
     source.buffer = buffer;
-    source.connect(gainNodeRef.current);
+    source.connect(sfxGainRef.current);
     source.start(0);
   }, [initAudioContext, loadAudioBuffer]);
 
@@ -209,6 +223,9 @@ const App: React.FC = () => {
       if (audioContextRef.current) {
         audioContextRef.current.close();
         audioContextRef.current = null;
+        masterGainRef.current = null;
+        musicGainRef.current = null;
+        sfxGainRef.current = null;
       }
     };
   }, [loadAudioBuffer, stopMusic]);
@@ -225,6 +242,19 @@ const App: React.FC = () => {
       observer.disconnect();
     };
   }, [updateStageScale]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      updateMusicGainForVisibility();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    updateMusicGainForVisibility();
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [updateMusicGainForVisibility]);
 
   // Music playback control based on view and settings
   useEffect(() => {
