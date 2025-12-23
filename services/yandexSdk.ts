@@ -140,6 +140,8 @@ export async function saveCloudData(progress: GameProgress): Promise<boolean> {
 
 // Интерфейс для колбэков полноэкранной рекламы
 export interface FullscreenAdCallbacks {
+  onOpen?: () => void;
+  onClose?: () => void;
   onVisibilityChange?: (isHidden: boolean) => void;
 }
 
@@ -179,11 +181,13 @@ export function showFullscreenAd(callbacks?: FullscreenAdCallbacks): Promise<boo
       callbacks: {
         onOpen: () => {
           console.log('Fullscreen ad opened');
+          callbacks?.onOpen?.();
           addVisibilityListener();
         },
         onClose: (wasShown) => {
           console.log('Fullscreen ad closed, wasShown:', wasShown);
           removeVisibilityListener();
+          callbacks?.onClose?.();
           // Возобновляем геймплей после рекламы
           startGameplay();
           resolve(wasShown);
@@ -191,6 +195,7 @@ export function showFullscreenAd(callbacks?: FullscreenAdCallbacks): Promise<boo
         onError: (error) => {
           console.error('Fullscreen ad error:', error);
           removeVisibilityListener();
+          callbacks?.onClose?.();
           // Возобновляем геймплей даже при ошибке
           startGameplay();
           resolve(false);
@@ -200,8 +205,14 @@ export function showFullscreenAd(callbacks?: FullscreenAdCallbacks): Promise<boo
   });
 }
 
+// Интерфейс для колбэков видео-рекламы с наградой
+export interface RewardedVideoCallbacks {
+  onOpen?: () => void;
+  onClose?: () => void;
+}
+
 // Показ видео-рекламы с наградой
-export function showRewardedVideo(): Promise<boolean> {
+export function showRewardedVideo(callbacks?: RewardedVideoCallbacks): Promise<boolean> {
   return new Promise((resolve) => {
     if (!ysdk) {
       console.warn('SDK not initialized, skipping rewarded video');
@@ -218,6 +229,7 @@ export function showRewardedVideo(): Promise<boolean> {
       callbacks: {
         onOpen: () => {
           console.log('Rewarded video opened');
+          callbacks?.onOpen?.();
         },
         onRewarded: () => {
           console.log('Rewarded!');
@@ -225,12 +237,14 @@ export function showRewardedVideo(): Promise<boolean> {
         },
         onClose: () => {
           console.log('Rewarded video closed');
+          callbacks?.onClose?.();
           // Возобновляем геймплей после рекламы
           startGameplay();
           resolve(rewarded);
         },
         onError: (error) => {
           console.error('Rewarded video error:', error);
+          callbacks?.onClose?.();
           // Возобновляем геймплей даже при ошибке
           startGameplay();
           resolve(false);

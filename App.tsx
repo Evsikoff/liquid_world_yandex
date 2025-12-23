@@ -13,7 +13,7 @@ import {
   gameReady,
   startGameplay,
   showFullscreenAd as showFullscreenAdBase,
-  showRewardedVideo,
+  showRewardedVideo as showRewardedVideoBase,
   GameProgress
 } from './services/yandexSdk';
 
@@ -285,12 +285,33 @@ const App: React.FC = () => {
     playSfx(randomUrl);
   }, [audioSettings.sfx, playSfx]);
 
-  // Показ полноэкранной рекламы с управлением звуком при переключении вкладки
+  // Показ полноэкранной рекламы с автоматическим заглушением музыки
   const showFullscreenAd = useCallback(() => {
     return showFullscreenAdBase({
-      onVisibilityChange: (isHidden) => {
+      onOpen: () => {
         if (musicGainRef.current) {
-          musicGainRef.current.gain.value = isHidden ? 0 : (audioSettings.music ? 1 : 0);
+          musicGainRef.current.gain.value = 0;
+        }
+      },
+      onClose: () => {
+        if (musicGainRef.current) {
+          musicGainRef.current.gain.value = audioSettings.music ? 1 : 0;
+        }
+      }
+    });
+  }, [audioSettings.music]);
+
+  // Показ видео-рекламы с наградой с автоматическим заглушением музыки
+  const showRewardedVideo = useCallback(() => {
+    return showRewardedVideoBase({
+      onOpen: () => {
+        if (musicGainRef.current) {
+          musicGainRef.current.gain.value = 0;
+        }
+      },
+      onClose: () => {
+        if (musicGainRef.current) {
+          musicGainRef.current.gain.value = audioSettings.music ? 1 : 0;
         }
       }
     });
