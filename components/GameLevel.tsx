@@ -14,6 +14,7 @@ interface GameLevelProps {
   toggleSfx: () => void;
   playRandomSfx: (type: 'transfer' | 'sink' | 'tap') => void;
   isMobile?: boolean;
+  stageAspectRatio: number;
   showFullscreenAd: () => Promise<boolean>;
   showRewardedVideo: () => Promise<boolean>;
 }
@@ -27,6 +28,7 @@ const GameLevel: React.FC<GameLevelProps> = ({
   toggleSfx,
   playRandomSfx,
   isMobile = false,
+  stageAspectRatio,
   showFullscreenAd,
   showRewardedVideo
 }) => {
@@ -265,12 +267,18 @@ const GameLevel: React.FC<GameLevelProps> = ({
         )}
 
         <div
-          className={`stage-anchored flex-1 flex justify-center ${isMobile ? 'p-2' : 'p-8'} aspect-[16/9] max-w-full w-full`}
-          style={{ '--stage-content-scale': isMobile ? 0.96 : 0.9 } as React.CSSProperties}
+          className={`stage-anchored flex-1 flex justify-center ${isMobile ? 'p-2' : 'p-8'} max-w-full w-full`}
+          style={{ '--stage-content-scale': isMobile ? 0.96 : 0.9, aspectRatio: stageAspectRatio } as React.CSSProperties}
         >
-           <div className={`stage-anchored-inner relative w-full h-full bg-white/40 backdrop-blur-sm border-4 border-white shadow-[0_10px_30px_rgba(0,0,0,0.03)] overflow-hidden flex items-center justify-center aspect-[16/9] max-h-full ${isMobile ? 'rounded-2xl min-h-[200px]' : 'rounded-[40px] min-h-[450px] max-w-5xl'}`}>
+           <div
+             className={`stage-anchored-inner relative w-full h-full bg-white/40 backdrop-blur-sm border-4 border-white shadow-[0_10px_30px_rgba(0,0,0,0.03)] overflow-hidden flex items-center justify-center max-h-full ${isMobile ? 'rounded-2xl min-h-[200px]' : 'rounded-[40px] min-h-[450px] max-w-5xl'}`}
+             style={{ aspectRatio: stageAspectRatio }}
+           >
               <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/blueprint.png')]"></div>
-              <div className={`stage-anchored-grid flex flex-wrap items-end justify-center z-10 w-full relative ${isMobile ? 'gap-3 p-3' : 'gap-12 p-12'}`}>
+              <div
+                className={`stage-anchored-grid flex flex-wrap items-end justify-center z-10 w-full relative ${isMobile ? 'gap-3 p-3' : 'gap-12 p-12'}`}
+                data-testid={level.hasSinkAndTap ? 'containers-with-sink' : 'containers-no-sink'}
+              >
                 {level.containers.map(def => {
                   const state = containers.find(c => c.id === def.id);
                   return (
@@ -290,7 +298,11 @@ const GameLevel: React.FC<GameLevelProps> = ({
            </div>
         </div>
 
-        <div className={`w-full flex flex-col items-center transition-opacity duration-500 ${level.hasSinkAndTap ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <div
+          className={`w-full flex flex-col items-center transition-opacity duration-500 ${level.hasSinkAndTap ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          data-testid="sink-control"
+          data-visibility={level.hasSinkAndTap ? 'sink-available' : 'sink-hidden'}
+        >
           <div className="relative w-full flex flex-col items-center">
             <div className={`relative w-full bg-slate-200 border-x-8 border-t-8 shadow-inner flex items-center justify-center overflow-hidden transition-all duration-500 z-30 ${isMobile ? 'max-w-sm h-16 rounded-t-[50px]' : 'max-w-2xl h-32 rounded-t-[100px]'} ${selectedId === 'SINK' || isSinkSuggested ? 'border-red-400 bg-red-50 shadow-[inset_0_0_30px_rgba(248,113,113,0.15)]' : 'border-slate-300'}`}>
               <div className={`rounded-full blur-[2px] relative transition-colors ${isMobile ? 'w-10 h-5 mt-6' : 'w-16 h-8 mt-12'} ${isSinkSuggested ? 'bg-red-400/50' : 'bg-slate-400/50'}`}>
