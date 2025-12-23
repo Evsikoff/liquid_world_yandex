@@ -29,6 +29,7 @@ const App: React.FC = () => {
   const [view, setView] = useState<'menu' | 'game' | 'levelSelect'>('menu');
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [maxReachedLevelIndex, setMaxReachedLevelIndex] = useState(0);
+  const [stageAspectRatio, setStageAspectRatio] = useState(16 / 9);
 
   const stageRef = useRef<HTMLDivElement | null>(null);
 
@@ -46,8 +47,11 @@ const App: React.FC = () => {
     if (!el) return;
 
     const { width, height } = el.getBoundingClientRect();
+    const aspectRatio = Number((width / height).toFixed(4));
     const scale = Math.min(width / 1280, height / 720, 1);
     el.style.setProperty('--stage-scale', scale.toString());
+    el.style.setProperty('--stage-aspect', aspectRatio.toString());
+    setStageAspectRatio(aspectRatio);
   }, []);
 
   // Web Audio API refs
@@ -336,7 +340,7 @@ const App: React.FC = () => {
         {/* Show rotate overlay on mobile portrait mode */}
         {isMobile && isPortrait && <RotateDeviceOverlay />}
 
-        <div className="app-stage-scaler">
+        <div className="app-stage-scaler" style={{ aspectRatio: stageAspectRatio }}>
           <div className="app-stage-content">
             {view === 'menu' && (
               <MainMenu
@@ -372,6 +376,7 @@ const App: React.FC = () => {
                 toggleSfx={toggleSfx}
                 playRandomSfx={playRandomSfx}
                 isMobile={isMobile}
+                stageAspectRatio={stageAspectRatio}
                 showFullscreenAd={showFullscreenAd}
                 showRewardedVideo={showRewardedVideo}
               />
