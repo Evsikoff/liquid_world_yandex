@@ -241,13 +241,14 @@ const App: React.FC = () => {
     };
   }, [updateStageScale]);
 
-  // Сигнал о готовности игры после отрисовки главного меню и расчёта данных экрана
-  useEffect(() => {
-    if (view === 'menu' && stageRef.current && !gameReadyCalled.current) {
+  // Callback для вызова gameReady когда меню полностью отрисовано
+  const handleMenuRenderComplete = useCallback(() => {
+    if (!gameReadyCalled.current) {
       gameReadyCalled.current = true;
+      console.log('Menu fully rendered - calling gameReady');
       gameReady();
     }
-  }, [view, stageAspectRatio]);
+  }, []);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -423,6 +424,7 @@ const App: React.FC = () => {
                 toggleMusic={toggleMusic}
                 toggleSfx={toggleSfx}
                 isMobile={isMobile}
+                onRenderComplete={handleMenuRenderComplete}
               />
             )}
 

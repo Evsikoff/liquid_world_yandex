@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { PlayCircle, List, Sparkles, Music, Volume2, VolumeX } from 'lucide-react';
 
 interface MainMenuProps {
@@ -11,6 +11,7 @@ interface MainMenuProps {
   toggleMusic: () => void;
   toggleSfx: () => void;
   isMobile?: boolean;
+  onRenderComplete?: () => void;
 }
 
 const MainMenu: React.FC<MainMenuProps> = ({
@@ -22,10 +23,71 @@ const MainMenu: React.FC<MainMenuProps> = ({
   audioSettings,
   toggleMusic,
   toggleSfx,
-  isMobile = false
+  isMobile = false,
+  onRenderComplete
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const renderCompleteCalled = useRef(false);
+  const lastSizeRef = useRef<{ width: number; height: number } | null>(null);
+  const stabilityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const checkStability = useCallback(() => {
+    if (renderCompleteCalled.current || !onRenderComplete) return;
+
+    // Clear previous timer
+    if (stabilityTimerRef.current) {
+      clearTimeout(stabilityTimerRef.current);
+    }
+
+    // Wait 200ms after last size change to confirm stability
+    stabilityTimerRef.current = setTimeout(() => {
+      if (!renderCompleteCalled.current && onRenderComplete) {
+        renderCompleteCalled.current = true;
+        console.log('MainMenu render complete - size stabilized');
+        onRenderComplete();
+      }
+    }, 200);
+  }, [onRenderComplete]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        const currentSize = { width: Math.round(width), height: Math.round(height) };
+
+        // Check if size actually changed
+        if (lastSizeRef.current) {
+          if (currentSize.width !== lastSizeRef.current.width ||
+              currentSize.height !== lastSizeRef.current.height) {
+            console.log('MainMenu size changed:', lastSizeRef.current, '->', currentSize);
+          }
+        } else {
+          console.log('MainMenu initial size:', currentSize);
+        }
+
+        lastSizeRef.current = currentSize;
+        checkStability();
+      }
+    });
+
+    observer.observe(container);
+
+    // Also trigger initial stability check after first render
+    checkStability();
+
+    return () => {
+      observer.disconnect();
+      if (stabilityTimerRef.current) {
+        clearTimeout(stabilityTimerRef.current);
+      }
+    };
+  }, [checkStability]);
+
   return (
-    <div className={`h-full w-full bg-slate-100 flex items-center justify-center relative overflow-hidden ${isMobile ? 'p-2' : 'p-4'}`}>
+    <div ref={containerRef} className={`h-full w-full bg-slate-100 flex items-center justify-center relative overflow-hidden ${isMobile ? 'p-2' : 'p-4'}`}>
       {/* Декоративный фон */}
       <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
 
