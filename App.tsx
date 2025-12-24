@@ -243,9 +243,9 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!gameReadyCalled.current) {
+      console.log('ysdk.features.LoadingAPI.ready() called');
       gameReady();
       gameReadyCalled.current = true;
-      console.log('Initial render and scale complete - calling gameReady');
     }
   }, [stageAspectRatio]);
 
