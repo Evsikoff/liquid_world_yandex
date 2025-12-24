@@ -241,18 +241,13 @@ const App: React.FC = () => {
     };
   }, [updateStageScale]);
 
-  // Вызов gameReady через таймер после запуска игры
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!gameReadyCalled.current) {
-        gameReadyCalled.current = true;
-        console.log('Timer elapsed - calling gameReady');
-        gameReady();
-      }
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
+    if (!gameReadyCalled.current) {
+      gameReady();
+      gameReadyCalled.current = true;
+      console.log('Initial render and scale complete - calling gameReady');
+    }
+  }, [stageAspectRatio]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
