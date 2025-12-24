@@ -85,8 +85,6 @@ const App: React.FC = () => {
       stageScale: metrics.stageScale,
       stageAspectRatio: metrics.stageAspectRatio
     });
-
-    gameReady();
   }, [isMobile]);
 
   // Web Audio API refs
@@ -259,6 +257,33 @@ const App: React.FC = () => {
       }
     };
   }, [loadAudioBuffer, stopMusic]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const signalGameReady = async () => {
+      await initYandexSdk();
+      if (cancelled) return;
+      gameReady();
+    };
+
+    if (document.readyState === 'complete') {
+      signalGameReady();
+    } else {
+      const handleLoad = () => {
+        signalGameReady();
+      };
+      window.addEventListener('load', handleLoad);
+      return () => {
+        cancelled = true;
+        window.removeEventListener('load', handleLoad);
+      };
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     applyFixedStageMetrics();
