@@ -154,6 +154,8 @@ const App: React.FC = () => {
     source.start(0);
   }, [initAudioContext, loadAudioBuffer]);
 
+  const gameReadyTimerId = useRef<NodeJS.Timeout | null>(null);
+
   // Load progress and audio settings on mount
   useEffect(() => {
     const loadProgress = async () => {
@@ -162,6 +164,15 @@ const App: React.FC = () => {
 
       // Пробуем загрузить из облачных сохранений
       const cloudData = await getCloudData();
+
+      // Запускаем таймер после инициализации плеера
+      gameReadyTimerId.current = setTimeout(() => {
+        if (!gameReadyCalled.current) {
+          console.log('ysdk.features.LoadingAPI.ready() called');
+          gameReady();
+          gameReadyCalled.current = true;
+        }
+      }, 2000);
 
       if (cloudData) {
         // Используем облачные данные
@@ -217,6 +228,9 @@ const App: React.FC = () => {
 
     // Cleanup on unmount
     return () => {
+      if (gameReadyTimerId.current) {
+        clearTimeout(gameReadyTimerId.current);
+      }
       stopMusic();
       if (audioContextRef.current) {
         audioContextRef.current.close();
@@ -242,16 +256,12 @@ const App: React.FC = () => {
   }, [updateStageScale]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!gameReadyCalled.current) {
-        console.log('ysdk.features.LoadingAPI.ready() called');
-        gameReady();
-        gameReadyCalled.current = true;
-      }
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
+    if (!gameReadyCalled.current) {
+      console.log('ysdk.features.LoadingAPI.ready() called');
+      gameReady();
+      gameReadyCalled.current = true;
+    }
+  }, [stageAspectRatio]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
