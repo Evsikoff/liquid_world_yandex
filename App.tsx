@@ -241,15 +241,14 @@ const App: React.FC = () => {
     };
   }, [updateStageScale]);
 
-  // Вызов gameReady через таймер после запуска игры
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!gameReadyCalled.current) {
-        gameReadyCalled.current = true;
-        console.log('Timer elapsed - calling gameReady');
+        console.log('ysdk.features.LoadingAPI.ready() called');
         gameReady();
+        gameReadyCalled.current = true;
       }
-    }, 1000);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
