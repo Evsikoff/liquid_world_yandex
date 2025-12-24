@@ -21,6 +21,26 @@ const PROGRESS_KEY = 'liquid_puzzle_v2_progress';
 const MAX_LEVEL_KEY = 'liquid_puzzle_v2_max_level';
 const AUDIO_SETTINGS_KEY = 'liquid_puzzle_v2_audio';
 
+const DESKTOP_STAGE_METRICS = {
+  aspectRatio: 1.7344,
+  containerHeight: 698.4,
+  containerWidth: 1211.3,
+  observedHeight: 698.39,
+  observedWidth: 1211.3,
+  stageAspectRatio: 1.7344,
+  stageScale: 0.9463
+};
+
+const MOBILE_STAGE_METRICS = {
+  aspectRatio: 2.0723,
+  containerHeight: 412,
+  containerWidth: 853.79,
+  observedHeight: 412,
+  observedWidth: 853.78,
+  stageAspectRatio: 2.0723,
+  stageScale: 0.5722
+};
+
 // Web Audio API manager - doesn't show in system media player
 interface AudioBufferCache {
   [key: string]: AudioBuffer;
@@ -34,8 +54,6 @@ const App: React.FC = () => {
   const language = useInterfaceLanguage('ru');
 
   const stageRef = useRef<HTMLDivElement | null>(null);
-  const resizeStabilityTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const lastObservedSizeRef = useRef<{ width: number; height: number } | null>(null);
 
   // Mobile device detection
   const { isMobile, isPortrait } = useDeviceDetection();
@@ -46,45 +64,30 @@ const App: React.FC = () => {
     sfx: true
   });
 
-  const updateStageScale = useCallback(() => {
+  const applyFixedStageMetrics = useCallback(() => {
     const el = stageRef.current;
     if (!el) return;
 
-    const { width, height } = el.getBoundingClientRect();
-    const aspectRatio = Number((width / height).toFixed(4));
-    const scale = Math.min(width / 1280, height / 720, 1);
-    el.style.setProperty('--stage-scale', scale.toString());
-    el.style.setProperty('--stage-aspect', aspectRatio.toString());
-    setStageAspectRatio(aspectRatio);
-  }, []);
+    const metrics = isMobile ? MOBILE_STAGE_METRICS : DESKTOP_STAGE_METRICS;
 
-  const logImageStability = useCallback(() => {
-    const el = stageRef.current;
-    const lastObservedSize = lastObservedSizeRef.current;
-
-    const rect = el?.getBoundingClientRect();
-    const computedStyle = el ? getComputedStyle(el) : null;
-
-    const parseStyleNumber = (value: string | null) => {
-      if (!value) return undefined;
-      const parsed = parseFloat(value);
-      return Number.isFinite(parsed) ? Number(parsed.toFixed(4)) : undefined;
-    };
-
-    const stageScale = parseStyleNumber(computedStyle?.getPropertyValue('--stage-scale'));
-    const stageAspect = parseStyleNumber(computedStyle?.getPropertyValue('--stage-aspect'));
+    el.style.setProperty('--stage-scale', metrics.stageScale.toString());
+    el.style.setProperty('--stage-aspect', metrics.stageAspectRatio.toString());
+    el.style.width = `${metrics.containerWidth}px`;
+    el.style.height = `${metrics.containerHeight}px`;
+    setStageAspectRatio(metrics.stageAspectRatio);
 
     console.log('Изображение устоялось', {
-      observedWidth: lastObservedSize?.width,
-      observedHeight: lastObservedSize?.height,
-      containerWidth: rect ? Number(rect.width.toFixed(2)) : undefined,
-      containerHeight: rect ? Number(rect.height.toFixed(2)) : undefined,
-      aspectRatio: rect ? Number((rect.width / rect.height).toFixed(4)) : undefined,
-      stageScale,
-      stageAspectRatio: stageAspect
+      observedWidth: metrics.observedWidth,
+      observedHeight: metrics.observedHeight,
+      containerWidth: metrics.containerWidth,
+      containerHeight: metrics.containerHeight,
+      aspectRatio: metrics.aspectRatio,
+      stageScale: metrics.stageScale,
+      stageAspectRatio: metrics.stageAspectRatio
     });
-    console.log('ysdk.features.LoadingAPI.ready() called');
-  }, []);
+
+    gameReady();
+  }, [isMobile]);
 
   // Web Audio API refs
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -258,43 +261,8 @@ const App: React.FC = () => {
   }, [loadAudioBuffer, stopMusic]);
 
   useEffect(() => {
-    const el = stageRef.current;
-    if (!el) return;
-
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (!entry) return;
-
-      const roundedWidth = Number(entry.contentRect.width.toFixed(2));
-      const roundedHeight = Number(entry.contentRect.height.toFixed(2));
-      const lastSize = lastObservedSizeRef.current;
-      const sizeChanged = !lastSize
-        || lastSize.width !== roundedWidth
-        || lastSize.height !== roundedHeight;
-
-      if (sizeChanged) {
-        lastObservedSizeRef.current = { width: roundedWidth, height: roundedHeight };
-        if (resizeStabilityTimerRef.current) {
-          clearTimeout(resizeStabilityTimerRef.current);
-        }
-        resizeStabilityTimerRef.current = setTimeout(() => {
-          logImageStability();
-          gameReady();
-        }, 150);
-      }
-
-      updateStageScale();
-    });
-    observer.observe(el);
-    updateStageScale();
-
-    return () => {
-      if (resizeStabilityTimerRef.current) {
-        clearTimeout(resizeStabilityTimerRef.current);
-      }
-      observer.disconnect();
-    };
-  }, [updateStageScale, logImageStability]);
+    applyFixedStageMetrics();
+  }, [applyFixedStageMetrics]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
