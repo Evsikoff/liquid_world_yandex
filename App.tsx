@@ -58,6 +58,34 @@ const App: React.FC = () => {
     setStageAspectRatio(aspectRatio);
   }, []);
 
+  const logImageStability = useCallback(() => {
+    const el = stageRef.current;
+    const lastObservedSize = lastObservedSizeRef.current;
+
+    const rect = el?.getBoundingClientRect();
+    const computedStyle = el ? getComputedStyle(el) : null;
+
+    const parseStyleNumber = (value: string | null) => {
+      if (!value) return undefined;
+      const parsed = parseFloat(value);
+      return Number.isFinite(parsed) ? Number(parsed.toFixed(4)) : undefined;
+    };
+
+    const stageScale = parseStyleNumber(computedStyle?.getPropertyValue('--stage-scale'));
+    const stageAspect = parseStyleNumber(computedStyle?.getPropertyValue('--stage-aspect'));
+
+    console.log('Изображение устоялось', {
+      observedWidth: lastObservedSize?.width,
+      observedHeight: lastObservedSize?.height,
+      containerWidth: rect ? Number(rect.width.toFixed(2)) : undefined,
+      containerHeight: rect ? Number(rect.height.toFixed(2)) : undefined,
+      aspectRatio: rect ? Number((rect.width / rect.height).toFixed(4)) : undefined,
+      stageScale,
+      stageAspectRatio: stageAspect
+    });
+    console.log('ysdk.features.LoadingAPI.ready() called');
+  }, []);
+
   // Web Audio API refs
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioBuffersRef = useRef<AudioBufferCache>({});
@@ -250,8 +278,7 @@ const App: React.FC = () => {
           clearTimeout(resizeStabilityTimerRef.current);
         }
         resizeStabilityTimerRef.current = setTimeout(() => {
-          console.log('Изображение устоялось');
-          console.log('ysdk.features.LoadingAPI.ready() called');
+          logImageStability();
           gameReady();
         }, 150);
       }
@@ -267,7 +294,7 @@ const App: React.FC = () => {
       }
       observer.disconnect();
     };
-  }, [updateStageScale]);
+  }, [updateStageScale, logImageStability]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
