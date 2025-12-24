@@ -35,6 +35,8 @@ const App: React.FC = () => {
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const gameReadyCalled = useRef(false);
+  const resizeStabilityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastObservedSizeRef = useRef<{ width: number; height: number } | null>(null);
 
   // Mobile device detection
   const { isMobile, isPortrait } = useDeviceDetection();
@@ -246,11 +248,36 @@ const App: React.FC = () => {
     const el = stageRef.current;
     if (!el) return;
 
-    const observer = new ResizeObserver(() => updateStageScale());
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+
+      const roundedWidth = Number(entry.contentRect.width.toFixed(2));
+      const roundedHeight = Number(entry.contentRect.height.toFixed(2));
+      const lastSize = lastObservedSizeRef.current;
+      const sizeChanged = !lastSize
+        || lastSize.width !== roundedWidth
+        || lastSize.height !== roundedHeight;
+
+      if (sizeChanged) {
+        lastObservedSizeRef.current = { width: roundedWidth, height: roundedHeight };
+        if (resizeStabilityTimerRef.current) {
+          clearTimeout(resizeStabilityTimerRef.current);
+        }
+        resizeStabilityTimerRef.current = setTimeout(() => {
+          console.log('Изображение устоялось');
+        }, 150);
+      }
+
+      updateStageScale();
+    });
     observer.observe(el);
     updateStageScale();
 
     return () => {
+      if (resizeStabilityTimerRef.current) {
+        clearTimeout(resizeStabilityTimerRef.current);
+      }
       observer.disconnect();
     };
   }, [updateStageScale]);
