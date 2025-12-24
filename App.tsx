@@ -242,12 +242,16 @@ const App: React.FC = () => {
   }, [updateStageScale]);
 
   useEffect(() => {
-    if (!gameReadyCalled.current) {
-      console.log('ysdk.features.LoadingAPI.ready() called');
-      gameReady();
-      gameReadyCalled.current = true;
-    }
-  }, [stageAspectRatio]);
+    const timer = setTimeout(() => {
+      if (!gameReadyCalled.current) {
+        console.log('ysdk.features.LoadingAPI.ready() called');
+        gameReady();
+        gameReadyCalled.current = true;
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
