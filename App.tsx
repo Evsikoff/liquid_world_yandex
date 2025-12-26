@@ -64,6 +64,20 @@ const App: React.FC = () => {
     sfx: true
   });
 
+  const applyResponsiveStageMetrics = useCallback(() => {
+    const el = stageRef.current;
+    if (!el) return;
+
+    const viewportAspect = window.innerWidth / window.innerHeight;
+    const responsiveAspect = Number(viewportAspect.toFixed(3));
+
+    el.style.removeProperty('width');
+    el.style.removeProperty('height');
+    el.style.setProperty('--stage-scale', '1');
+    el.style.setProperty('--stage-aspect', responsiveAspect.toString());
+    setStageAspectRatio(responsiveAspect);
+  }, []);
+
   const applyFixedStageMetrics = useCallback(() => {
     const el = stageRef.current;
     if (!el) return;
@@ -286,8 +300,18 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    applyFixedStageMetrics();
-  }, [applyFixedStageMetrics]);
+    const handleResize = () => {
+      if (view === 'game') {
+        applyResponsiveStageMetrics();
+      } else {
+        applyFixedStageMetrics();
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [view, applyFixedStageMetrics, applyResponsiveStageMetrics]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
