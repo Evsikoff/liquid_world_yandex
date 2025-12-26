@@ -92,7 +92,8 @@ const GameLevel: React.FC<GameLevelProps> = ({
 
     // Calculate available space for game elements
     const headerHeight = isMobile ? 48 : 64;
-    const toolsHeight = hasSink ? (isMobile ? 60 : 80) : 0;
+    // Account for BOTH tap and sink sections when hasSinkAndTap is true
+    const toolsHeight = hasSink ? (isMobile ? 120 : 160) : 0;
     const padding = isMobile ? 16 : 32;
 
     const availableHeight = height - headerHeight - toolsHeight - padding * 2;
@@ -315,7 +316,10 @@ const GameLevel: React.FC<GameLevelProps> = ({
       <main className="game-level-main" ref={gameAreaRef}>
         {/* Tap Section - only when hasSinkAndTap */}
         {level.hasSinkAndTap && (
-          <div className="game-level-tap-section">
+          <div
+            className="game-level-tap-section"
+            style={{ '--section-scale': Math.max(0.6, sizing.containerScale) } as React.CSSProperties}
+          >
             <button
               onClick={handleTapButtonClick}
               className={`game-level-tap-btn ${selectedId === 'TAP' ? 'active' : ''} ${isTapSuggested ? 'suggested' : ''}`}
@@ -363,7 +367,10 @@ const GameLevel: React.FC<GameLevelProps> = ({
 
         {/* Sink Section - only when hasSinkAndTap */}
         {level.hasSinkAndTap && (
-          <div className="game-level-sink-section">
+          <div
+            className="game-level-sink-section"
+            style={{ '--section-scale': Math.max(0.6, sizing.containerScale) } as React.CSSProperties}
+          >
             <button
               onClick={handleSinkButtonClick}
               className={`game-level-sink-btn ${selectedId === 'SINK' ? 'active' : ''} ${isSinkSuggested ? 'suggested' : ''}`}
