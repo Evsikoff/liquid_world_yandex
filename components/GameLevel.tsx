@@ -428,7 +428,7 @@ const GameLevel: React.FC<GameLevelProps> = ({
                   setRevealedHintsCount(prev => prev + 1);
                 }
               }} className={`flex items-center rounded-full font-bold transition-all ${isMobile ? 'gap-1 px-3 py-2 text-xs' : 'gap-2 px-6 py-3 text-lg'} ${revealedHintsCount >= level.solutionSteps.length ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg active:scale-95'}`}>
-                {isMobile ? 'Ещё шаг' : 'Открыть еще один шаг'} <ChevronRight size={isMobile ? 14 : 20} />
+                {isMobile ? '🎥 Ещё шаг' : '🎥 Открыть еще один шаг'} <ChevronRight size={isMobile ? 14 : 20} />
               </button>
             </div>
           </div>
