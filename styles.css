@@ -299,10 +299,16 @@ body {
 
 /* Tap Section */
 .game-level-tap-section {
+  --section-scale: 1;
   display: flex;
   justify-content: center;
-  flex-shrink: 0;
-  padding: 4px 0;
+  flex-shrink: 1;
+  padding: calc(4px * var(--section-scale)) 0;
+  transform: scale(var(--section-scale));
+  transform-origin: center top;
+  /* Compensate layout height for scaled content */
+  height: calc(100px * var(--section-scale));
+  min-height: calc(60px * var(--section-scale));
 }
 
 .game-level-tap-btn {
@@ -449,11 +455,17 @@ body {
 
 /* Sink Section */
 .game-level-sink-section {
+  --section-scale: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex-shrink: 0;
-  padding: 4px 0;
+  flex-shrink: 1;
+  padding: calc(4px * var(--section-scale)) 0;
+  transform: scale(var(--section-scale));
+  transform-origin: center bottom;
+  /* Compensate layout height for scaled content */
+  height: calc(100px * var(--section-scale));
+  min-height: calc(60px * var(--section-scale));
 }
 
 .game-level-sink-btn {
