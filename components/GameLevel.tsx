@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Level, ContainerState } from '../types';
 import Container from './Container';
 import Modal from './Modal';
 import { RotateCcw, Info, Droplets, Undo2, LogOut, Lightbulb, Lock, ChevronRight, Trash2, Music, Volume2, VolumeX } from 'lucide-react';
-import { stopGameplay, startGameplay } from '../services/yandexSdk';
+import { stopGameplay } from '../services/yandexSdk';
 
 interface GameLevelProps {
   level: Level;
@@ -19,6 +19,11 @@ interface GameLevelProps {
   showRewardedVideo: () => Promise<boolean>;
 }
 
+interface ViewportSize {
+  width: number;
+  height: number;
+}
+
 const GameLevel: React.FC<GameLevelProps> = ({
   level,
   onLevelComplete,
@@ -28,7 +33,6 @@ const GameLevel: React.FC<GameLevelProps> = ({
   toggleSfx,
   playRandomSfx,
   isMobile = false,
-  stageAspectRatio,
   showFullscreenAd,
   showRewardedVideo
 }) => {
@@ -40,9 +44,81 @@ const GameLevel: React.FC<GameLevelProps> = ({
   const [showHintModal, setShowHintModal] = useState(false);
   const [revealedHintsCount, setRevealedHintsCount] = useState(0);
   const [isPouring, setIsPouring] = useState(false);
-  const sinkRef = useRef<HTMLDivElement | null>(null);
-  const gridRef = useRef<HTMLDivElement | null>(null);
-  const [sinkLift, setSinkLift] = useState(0);
+
+  // Real-time viewport tracking
+  const [viewport, setViewport] = useState<ViewportSize>({ width: 0, height: 0 });
+  const gameAreaRef = useRef<HTMLDivElement | null>(null);
+
+  // Track viewport size in real-time using ResizeObserver
+  useEffect(() => {
+    const updateViewport = () => {
+      if (gameAreaRef.current) {
+        const rect = gameAreaRef.current.getBoundingClientRect();
+        setViewport({ width: rect.width, height: rect.height });
+      } else {
+        setViewport({ width: window.innerWidth, height: window.innerHeight });
+      }
+    };
+
+    updateViewport();
+
+    // Use ResizeObserver for real-time tracking
+    const resizeObserver = new ResizeObserver(() => {
+      requestAnimationFrame(updateViewport);
+    });
+
+    if (gameAreaRef.current) {
+      resizeObserver.observe(gameAreaRef.current);
+    }
+
+    // Also listen to window resize as fallback
+    window.addEventListener('resize', updateViewport);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateViewport);
+    };
+  }, []);
+
+  // Calculate dynamic sizing based on viewport
+  const sizing = useMemo(() => {
+    const { width, height } = viewport;
+    if (width === 0 || height === 0) {
+      return { containerScale: 1, headerHeight: 56, toolsHeight: 80 };
+    }
+
+    const containerCount = level.containers.length;
+    const hasSink = level.hasSinkAndTap;
+
+    // Calculate available space for game elements
+    const headerHeight = isMobile ? 48 : 64;
+    const toolsHeight = hasSink ? (isMobile ? 60 : 80) : 0;
+    const padding = isMobile ? 16 : 32;
+
+    const availableHeight = height - headerHeight - toolsHeight - padding * 2;
+    const availableWidth = width - padding * 2;
+
+    // Calculate optimal container size
+    const maxContainerWidth = availableWidth / Math.min(containerCount, 4);
+    const maxContainerHeight = availableHeight * (hasSink ? 0.7 : 0.85);
+
+    // Base container size
+    const baseWidth = isMobile ? 70 : 140;
+    const baseHeight = isMobile ? 110 : 220;
+
+    // Calculate scale to fit within available space
+    const scaleByWidth = maxContainerWidth / (baseWidth * 1.5);
+    const scaleByHeight = maxContainerHeight / (baseHeight * 1.5);
+    const containerScale = Math.min(scaleByWidth, scaleByHeight, isMobile ? 1.2 : 1.5);
+
+    return {
+      containerScale: Math.max(0.5, containerScale),
+      headerHeight,
+      toolsHeight,
+      availableHeight,
+      availableWidth
+    };
+  }, [viewport, level.containers.length, level.hasSinkAndTap, isMobile]);
 
   useEffect(() => {
     const initialStates = level.containers.map(c => ({
@@ -55,30 +131,7 @@ const GameLevel: React.FC<GameLevelProps> = ({
     setShowGoalModal(true);
     setShowWinModal(false);
     setRevealedHintsCount(0);
-    setSinkLift(0);
   }, [level]);
-
-  const repositionSinkIfNeeded = useCallback(() => {
-    if (!level.hasSinkAndTap || !sinkRef.current) {
-      setSinkLift(0);
-      return;
-    }
-
-    const rect = sinkRef.current.getBoundingClientRect();
-    const overflow = rect.bottom - window.innerHeight;
-    const lift = overflow > 0 ? overflow + 12 : 0;
-    setSinkLift(lift);
-  }, [level.hasSinkAndTap]);
-
-  useEffect(() => {
-    repositionSinkIfNeeded();
-  }, [repositionSinkIfNeeded, stageAspectRatio, isMobile]);
-
-  useEffect(() => {
-    const handleResize = () => repositionSinkIfNeeded();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [repositionSinkIfNeeded]);
 
   useEffect(() => {
     if (isPouring) return;
@@ -91,7 +144,6 @@ const GameLevel: React.FC<GameLevelProps> = ({
     });
     if (isWin && containers.length > 0) {
       setTimeout(() => {
-        // Останавливаем геймплей при показе модального окна победы
         stopGameplay();
         setShowWinModal(true);
       }, 600);
@@ -145,13 +197,13 @@ const GameLevel: React.FC<GameLevelProps> = ({
     const toContainer = containers.find(c => c.id === toId);
     const toDef = level.containers.find(c => c.id === toId);
     if (!fromContainer || !toContainer || !toDef) return;
-    
+
     const availableSpace = toDef.capacity - toContainer.currentAmount;
     if (availableSpace <= 0 || fromContainer.currentAmount === 0) {
       setSelectedId(null);
       return;
     }
-    
+
     const amountToPour = Math.min(fromContainer.currentAmount, availableSpace);
     if (amountToPour > 0) {
       performAction(() => {
@@ -169,14 +221,14 @@ const GameLevel: React.FC<GameLevelProps> = ({
     const toDef = level.containers.find(c => c.id === toId);
     const toContainer = containers.find(c => c.id === toId);
     if (!toDef || !toContainer || toContainer.currentAmount === toDef.capacity) return;
-    
+
     performAction(() => containers.map(c => c.id === toId ? { ...c, currentAmount: toDef.capacity } : c), 'tap');
   };
 
   const emptyToSink = (fromId: string) => {
     const fromContainer = containers.find(c => c.id === fromId);
     if (!fromContainer || fromContainer.currentAmount === 0) return;
-    
+
     performAction(() => containers.map(c => c.id === fromId ? { ...c, currentAmount: 0 } : c), 'sink');
   };
 
@@ -209,157 +261,128 @@ const GameLevel: React.FC<GameLevelProps> = ({
   const isTapSuggested = selectedContainer && selectedDef && selectedContainer.currentAmount < selectedDef.capacity;
   const isSinkSuggested = selectedContainer && selectedDef && selectedContainer.currentAmount > 0;
 
-  const sinkAwareContentScale = Math.max(
-    0.78,
-    (level.hasSinkAndTap ? (isMobile ? 0.9 : 0.92) : isMobile ? 0.96 : 0.9) - Math.min(0.1, sinkLift / 600)
-  );
-  const gridAspectRatio = Number(
-    (
-      stageAspectRatio +
-      (level.hasSinkAndTap ? 0.35 + Math.min(0.3, sinkLift / 300) : 0)
-    ).toFixed(3)
-  );
-
   return (
-    <div className="flex flex-col h-full bg-slate-100 relative overflow-hidden">
-      <div
-        className="fixed inset-0 w-screen h-screen opacity-[0.03] pointer-events-none z-0"
-        style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }}
-      ></div>
-
-      <header className={`flex justify-between items-center bg-white/80 backdrop-blur-md shadow-sm z-[60] ${isMobile ? 'p-2 gap-2' : 'p-4'}`}>
-        <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-4'}`}>
-          <button onClick={onExit} className={`hover:bg-red-100 rounded-full text-slate-600 transition-colors ${isMobile ? 'p-1.5' : 'p-2'}`}>
-            <LogOut size={isMobile ? 20 : 24} />
+    <div className="game-level-root">
+      {/* Header */}
+      <header className="game-level-header">
+        <div className="game-level-header-left">
+          <button onClick={onExit} className="game-level-btn game-level-btn-exit">
+            <LogOut size={isMobile ? 18 : 22} />
           </button>
-          <div className="flex flex-col">
-            <h1 className={`font-bold text-slate-800 ${isMobile ? 'text-base' : 'text-xl'}`}>Уровень {level.id}</h1>
-            {!isMobile && <span className="text-sm text-slate-500">{level.title}</span>}
+          <div className="game-level-title">
+            <h1>Уровень {level.id}</h1>
+            {!isMobile && <span>{level.title}</span>}
           </div>
         </div>
 
-        <div className={`flex ${isMobile ? 'gap-1' : 'gap-2'}`}>
-          {/* Аудио Контролы */}
-          <button onClick={toggleMusic} className={`rounded-full transition-colors ${audioSettings.music ? 'bg-blue-100 text-blue-600' : 'bg-slate-200 text-slate-400'} ${isMobile ? 'p-1.5' : 'p-2'}`}>
-            {audioSettings.music ? <Music size={isMobile ? 16 : 20} /> : <Music size={isMobile ? 16 : 20} className="opacity-40" />}
+        <div className="game-level-header-right">
+          <button onClick={toggleMusic} className={`game-level-btn ${audioSettings.music ? 'game-level-btn-music-on' : 'game-level-btn-music-off'}`}>
+            <Music size={isMobile ? 16 : 20} className={audioSettings.music ? '' : 'opacity-40'} />
           </button>
-          <button onClick={toggleSfx} className={`rounded-full transition-colors ${audioSettings.sfx ? 'bg-yellow-100 text-yellow-600' : 'bg-slate-200 text-slate-400'} ${isMobile ? 'p-1.5' : 'p-2'}`}>
+          <button onClick={toggleSfx} className={`game-level-btn ${audioSettings.sfx ? 'game-level-btn-sfx-on' : 'game-level-btn-sfx-off'}`}>
             {audioSettings.sfx ? <Volume2 size={isMobile ? 16 : 20} /> : <VolumeX size={isMobile ? 16 : 20} />}
           </button>
 
-          {!isMobile && <div className="w-px h-8 bg-slate-200 mx-1"></div>}
+          {!isMobile && <div className="game-level-divider"></div>}
 
           <button
             onClick={async () => {
-              // Показываем полноэкранную рекламу перед открытием подсказки
               await showFullscreenAd();
               setShowHintModal(true);
               if (revealedHintsCount === 0) setRevealedHintsCount(1);
             }}
-            className={`flex items-center bg-amber-100 text-amber-700 rounded-full font-semibold hover:bg-amber-200 transition-colors ${isMobile ? 'p-1.5' : 'gap-2 px-4 py-2'}`}
+            className="game-level-btn game-level-btn-hint"
           >
             <Lightbulb size={isMobile ? 16 : 20} />
-            {!isMobile && <span className="hidden sm:inline">Подсказка</span>}
+            {!isMobile && <span>Подсказка</span>}
           </button>
 
-          <button onClick={() => setShowGoalModal(true)} className={`bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors ${isMobile ? 'p-1.5' : 'p-2'}`}>
+          <button onClick={() => setShowGoalModal(true)} className="game-level-btn game-level-btn-info">
             <Info size={isMobile ? 16 : 20} />
           </button>
 
-          <button onClick={handleUndo} disabled={history.length === 0} className={`rounded-full ${history.length === 0 ? 'bg-slate-200 text-slate-400' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'} ${isMobile ? 'p-1.5' : 'p-2'}`}>
+          <button onClick={handleUndo} disabled={history.length === 0} className={`game-level-btn ${history.length === 0 ? 'game-level-btn-disabled' : 'game-level-btn-undo'}`}>
             <Undo2 size={isMobile ? 16 : 20} />
           </button>
 
-          <button onClick={handleReset} className={`bg-slate-200 text-slate-700 rounded-full hover:bg-slate-300 transition-colors ${isMobile ? 'p-1.5' : 'p-2'}`}>
+          <button onClick={handleReset} className="game-level-btn game-level-btn-reset">
             <RotateCcw size={isMobile ? 16 : 20} />
           </button>
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col relative">
+      {/* Main Game Area - uses flex layout for reliable positioning */}
+      <main className="game-level-main" ref={gameAreaRef}>
+        {/* Tap Section - only when hasSinkAndTap */}
         {level.hasSinkAndTap && (
-          <div className={`absolute flex flex-col items-center z-50 ${isMobile ? 'top-2 right-[10%] scale-75 origin-top-right' : 'top-12 left-12'}`}>
-            <div className={`relative group transition-all duration-300 ${selectedId === 'TAP' ? 'scale-110 drop-shadow-2xl' : ''}`}>
-              <div className="flex flex-col items-center">
-                <div className={`${isMobile ? 'w-6 h-8' : 'w-8 h-10'} rounded-t-sm transition-colors ${selectedId === 'TAP' || isTapSuggested ? 'bg-blue-400 shadow-[0_0_15px_rgba(96,165,250,0.6)]' : 'bg-slate-400'}`}></div>
-                <div className={`${isMobile ? 'w-16 h-8 left-6' : 'w-24 h-10 left-8'} rounded-tr-[40px] relative transition-colors ${selectedId === 'TAP' || isTapSuggested ? 'bg-blue-400 shadow-[0_0_20px_rgba(96,165,250,0.4)]' : 'bg-slate-400'}`}>
-                  <div
-                    onClick={(e) => { e.stopPropagation(); handleTapButtonClick(); }}
-                    className={`absolute -top-4 left-0 ${isMobile ? 'w-8 h-3' : 'w-10 h-4'} rounded-full cursor-pointer transition-all shadow-md active:scale-95
-                      ${selectedId === 'TAP' ? 'bg-blue-600 ring-2 ring-white' : isTapSuggested ? 'bg-blue-500 animate-pulse ring-2 ring-blue-300' : 'bg-slate-600 hover:bg-slate-700'}`}
-                  ></div>
-                  <div className={`absolute right-0 ${isMobile ? 'top-8 w-6 h-4' : 'top-10 w-8 h-6'} rounded-b-md transition-colors ${selectedId === 'TAP' || isTapSuggested ? 'bg-blue-400' : 'bg-slate-400'}`}></div>
-                </div>
+          <div className="game-level-tap-section">
+            <button
+              onClick={handleTapButtonClick}
+              className={`game-level-tap-btn ${selectedId === 'TAP' ? 'active' : ''} ${isTapSuggested ? 'suggested' : ''}`}
+            >
+              <div className="game-level-tap-visual">
+                <div className="tap-pipe"></div>
+                <div className="tap-spout"></div>
               </div>
-              <button onClick={handleTapButtonClick} className={`absolute ${isMobile ? 'top-[3rem]' : 'top-[4.5rem]'} left-1/2 -translate-x-1/2 mt-4 flex flex-col items-center transition-all ${selectedId === 'TAP' || isTapSuggested ? 'scale-110 opacity-100' : 'opacity-80 scale-90'}`}>
-                 <div className={`${isMobile ? 'p-3' : 'p-5'} rounded-full shadow-lg border-4 transition-all ${selectedId === 'TAP' || isTapSuggested ? 'bg-blue-500 border-white ring-4 ring-blue-200 animate-pulse' : 'bg-slate-400 border-slate-300'}`}>
-                    <Droplets className="text-white" size={isMobile ? 24 : 36} />
-                 </div>
-                 <span className={`${isMobile ? 'text-[9px] px-2 py-0.5' : 'text-[11px] px-3 py-1'} font-black mt-2 uppercase tracking-wider rounded-full transition-colors whitespace-nowrap ${selectedId === 'TAP' ? 'bg-blue-600 text-white' : isTapSuggested ? 'bg-blue-500 text-white shadow-sm' : 'bg-slate-200 text-slate-500'}`}>
-                   {selectedId === 'TAP' ? 'ВЫБЕРИТЕ ТАРУ' : isTapSuggested ? 'ЗАПОЛНИТЬ?' : 'КРАН'}
-                 </span>
-              </button>
-            </div>
+              <div className="game-level-tap-icon">
+                <Droplets size={isMobile ? 20 : 28} />
+              </div>
+              <span className="game-level-tap-label">
+                {selectedId === 'TAP' ? 'ВЫБЕРИТЕ' : isTapSuggested ? 'НАЛИТЬ?' : 'КРАН'}
+              </span>
+            </button>
           </div>
         )}
 
-        <div
-          className={`stage-anchored flex-1 flex justify-center ${isMobile ? 'p-2' : 'p-8'} max-w-full w-full`}
-          style={{ '--stage-content-scale': sinkAwareContentScale, aspectRatio: stageAspectRatio } as React.CSSProperties}
-        >
-           <div
-             className={`stage-anchored-inner relative w-full h-full bg-white/40 backdrop-blur-sm border-4 border-white shadow-[0_10px_30px_rgba(0,0,0,0.03)] overflow-hidden flex items-center justify-center max-h-full ${isMobile ? 'rounded-2xl min-h-[200px]' : 'rounded-[40px] min-h-[450px] max-w-5xl'}`}
-             style={{ aspectRatio: stageAspectRatio }}
-           >
-              <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/blueprint.png')]"></div>
-              <div
-                className={`stage-anchored-grid flex flex-wrap items-end justify-center z-10 w-full relative ${isMobile ? 'gap-3 p-3' : 'gap-12 p-12'}`}
-                data-testid={level.hasSinkAndTap ? 'containers-with-sink' : 'containers-no-sink'}
-                style={{ '--stage-grid-aspect': gridAspectRatio } as React.CSSProperties}
-                ref={gridRef}
-              >
-                {level.containers.map(def => {
-                  const state = containers.find(c => c.id === def.id);
-                  return (
-                    <Container
-                      key={def.id}
-                      def={def}
-                      currentAmount={state?.currentAmount || 0}
-                      isSelected={selectedId === def.id}
-                      isSource={selectedId === def.id}
-                      activeTool={selectedId === 'TAP' ? 'TAP' : selectedId === 'SINK' ? 'SINK' : 'NONE'}
-                      onClick={() => handleContainerClick(def.id)}
-                      isMobile={isMobile}
-                    />
-                  );
-                })}
-              </div>
-           </div>
-        </div>
-
-        <div
-          className={`w-full flex flex-col items-center transition-opacity duration-500 ${level.hasSinkAndTap ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-          data-testid="sink-control"
-          data-visibility={level.hasSinkAndTap ? 'sink-available' : 'sink-hidden'}
-          ref={sinkRef}
-          style={{ transform: sinkLift ? `translateY(-${sinkLift}px)` : undefined }}
-        >
-          <div className="relative w-full flex flex-col items-center">
-            <div className={`relative w-full bg-slate-200 border-x-8 border-t-8 shadow-inner flex items-center justify-center overflow-hidden transition-all duration-500 z-30 ${isMobile ? 'max-w-sm h-16 rounded-t-[50px]' : 'max-w-2xl h-32 rounded-t-[100px]'} ${selectedId === 'SINK' || isSinkSuggested ? 'border-red-400 bg-red-50 shadow-[inset_0_0_30px_rgba(248,113,113,0.15)]' : 'border-slate-300'}`}>
-              <div className={`rounded-full blur-[2px] relative transition-colors ${isMobile ? 'w-10 h-5 mt-6' : 'w-16 h-8 mt-12'} ${isSinkSuggested ? 'bg-red-400/50' : 'bg-slate-400/50'}`}>
-                <div className={`absolute inset-2 rounded-full ${isSinkSuggested ? 'bg-red-600/30' : 'bg-slate-600/30'}`}></div>
-              </div>
-            </div>
-            <div className={`absolute flex justify-center w-full z-50 ${isMobile ? '-top-6' : '-top-10'}`}>
-              <button onClick={handleSinkButtonClick} className={`rounded-full font-black tracking-tight transition-all duration-300 transform flex items-center ${isMobile ? 'px-4 py-2 text-sm gap-2' : 'px-10 py-4 text-lg gap-3'} ${selectedId === 'SINK' || isSinkSuggested ? 'bg-red-600 text-white shadow-[0_10px_0_0_rgba(153,27,27,1)] -translate-y-2 ring-4 ring-red-200 animate-pulse' : 'bg-slate-500 text-slate-100 hover:bg-slate-600 shadow-[0_6px_0_0_rgba(71,85,105,1)] active:translate-y-1 active:shadow-none'}`}>
-                {selectedId === 'SINK' ? <><Trash2 size={isMobile ? 16 : 24} /> {isMobile ? 'ВЫБРАТЬ' : 'ВЫБЕРИТЕ ТАРУ'}</> : isSinkSuggested ? <><Trash2 size={isMobile ? 16 : 24} /> {isMobile ? 'СЛИТЬ?' : 'СЛИТЬ ВОДУ?'}</> : isMobile ? 'СЛИВ' : 'РАКОВИНА'}
-              </button>
-            </div>
-            <div className={`w-full shadow-xl transition-colors ${isMobile ? 'h-4' : 'h-8'} ${isSinkSuggested ? 'bg-red-300' : 'bg-slate-400'} z-20`}></div>
+        {/* Containers Section */}
+        <div className="game-level-containers-section">
+          <div
+            className="game-level-containers-grid"
+            style={{
+              '--container-scale': sizing.containerScale
+            } as React.CSSProperties}
+          >
+            {level.containers.map(def => {
+              const state = containers.find(c => c.id === def.id);
+              return (
+                <Container
+                  key={def.id}
+                  def={def}
+                  currentAmount={state?.currentAmount || 0}
+                  isSelected={selectedId === def.id}
+                  isSource={selectedId === def.id}
+                  activeTool={selectedId === 'TAP' ? 'TAP' : selectedId === 'SINK' ? 'SINK' : 'NONE'}
+                  onClick={() => handleContainerClick(def.id)}
+                  isMobile={isMobile}
+                  scale={sizing.containerScale}
+                />
+              );
+            })}
           </div>
         </div>
+
+        {/* Sink Section - only when hasSinkAndTap */}
+        {level.hasSinkAndTap && (
+          <div className="game-level-sink-section">
+            <button
+              onClick={handleSinkButtonClick}
+              className={`game-level-sink-btn ${selectedId === 'SINK' ? 'active' : ''} ${isSinkSuggested ? 'suggested' : ''}`}
+            >
+              <Trash2 size={isMobile ? 18 : 24} />
+              <span>
+                {selectedId === 'SINK' ? 'ВЫБЕРИТЕ' : isSinkSuggested ? 'СЛИТЬ?' : 'РАКОВИНА'}
+              </span>
+            </button>
+            <div className={`game-level-sink-visual ${selectedId === 'SINK' || isSinkSuggested ? 'highlighted' : ''}`}>
+              <div className="sink-basin">
+                <div className="sink-drain"></div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
+      {/* Modals */}
       <Modal title={`Уровень ${level.id}`} isOpen={showGoalModal} onClose={() => setShowGoalModal(false)} isMobile={isMobile}>
         <p className={isMobile ? 'mb-2 text-sm' : 'mb-4'}>{level.description}</p>
         <div className={`bg-blue-50 rounded-xl border border-blue-100 text-left ${isMobile ? 'p-2' : 'p-4'}`}>
@@ -374,7 +397,6 @@ const GameLevel: React.FC<GameLevelProps> = ({
 
       <Modal title="Победа!" isOpen={showWinModal} isMobile={isMobile} actions={
         <button onClick={async () => {
-          // Показываем полноэкранную рекламу перед переходом на следующий уровень
           await showFullscreenAd();
           onLevelComplete();
         }} className={`bg-green-500 hover:bg-green-600 text-white font-bold rounded-full shadow-lg ${isMobile ? 'px-5 py-2 text-sm' : 'px-8 py-3 text-lg'}`}>
@@ -422,7 +444,6 @@ const GameLevel: React.FC<GameLevelProps> = ({
             </div>
             <div className={`bg-white border-t flex justify-center ${isMobile ? 'p-3 gap-2' : 'p-6 gap-4'}`}>
               <button disabled={revealedHintsCount >= level.solutionSteps.length} onClick={async () => {
-                // Показываем видео-рекламу перед открытием следующего шага
                 const rewarded = await showRewardedVideo();
                 if (rewarded) {
                   setRevealedHintsCount(prev => prev + 1);
