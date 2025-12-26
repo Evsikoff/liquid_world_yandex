@@ -316,10 +316,7 @@ const GameLevel: React.FC<GameLevelProps> = ({
       <main className="game-level-main" ref={gameAreaRef}>
         {/* Tap Section - only when hasSinkAndTap */}
         {level.hasSinkAndTap && (
-          <div
-            className="game-level-tap-section"
-            style={{ '--section-scale': Math.max(0.6, sizing.containerScale) } as React.CSSProperties}
-          >
+          <div className="game-level-tap-section">
             <button
               onClick={handleTapButtonClick}
               className={`game-level-tap-btn ${selectedId === 'TAP' ? 'active' : ''} ${isTapSuggested ? 'suggested' : ''}`}
@@ -367,10 +364,7 @@ const GameLevel: React.FC<GameLevelProps> = ({
 
         {/* Sink Section - only when hasSinkAndTap */}
         {level.hasSinkAndTap && (
-          <div
-            className="game-level-sink-section"
-            style={{ '--section-scale': Math.max(0.6, sizing.containerScale) } as React.CSSProperties}
-          >
+          <div className="game-level-sink-section">
             <button
               onClick={handleSinkButtonClick}
               className={`game-level-sink-btn ${selectedId === 'SINK' ? 'active' : ''} ${isSinkSuggested ? 'suggested' : ''}`}
