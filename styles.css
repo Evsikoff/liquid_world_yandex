@@ -299,23 +299,21 @@ body {
 
 /* Tap Section */
 .game-level-tap-section {
-  --section-scale: 1;
   display: flex;
   justify-content: center;
   flex-shrink: 0;
-  padding: 4px 0;
-  /* No transform scaling - use direct sizing instead */
+  padding: clamp(2px, 0.5vh, 8px) 0;
 }
 
 .game-level-tap-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 6px 12px;
+  gap: clamp(2px, 0.3vh, 6px);
+  padding: clamp(4px, 1vh, 12px) clamp(8px, 2vh, 24px);
   background: #f1f5f9;
   border: 2px solid #cbd5e1;
-  border-radius: 12px;
+  border-radius: clamp(8px, 1.5vh, 16px);
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -339,8 +337,8 @@ body {
 }
 
 .tap-pipe {
-  width: 12px;
-  height: 16px;
+  width: clamp(8px, 1.5vh, 16px);
+  height: clamp(12px, 2vh, 20px);
   background: linear-gradient(90deg, #94a3b8 0%, #64748b 50%, #94a3b8 100%);
   border-radius: 2px 2px 0 0;
 }
@@ -351,8 +349,8 @@ body {
 }
 
 .tap-spout {
-  width: 24px;
-  height: 10px;
+  width: clamp(16px, 3vh, 32px);
+  height: clamp(8px, 1.2vh, 12px);
   background: linear-gradient(90deg, #94a3b8 0%, #64748b 50%, #94a3b8 100%);
   border-radius: 0 0 8px 8px;
 }
@@ -366,8 +364,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: clamp(32px, 6vh, 56px);
+  height: clamp(32px, 6vh, 56px);
   background: #cbd5e1;
   border-radius: 50%;
   color: #475569;
@@ -382,7 +380,7 @@ body {
 }
 
 .game-level-tap-label {
-  font-size: 10px;
+  font-size: clamp(8px, 1.2vh, 11px);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -393,32 +391,6 @@ body {
 .game-level-tap-btn.active .game-level-tap-label,
 .game-level-tap-btn.suggested .game-level-tap-label {
   color: white;
-}
-
-@media (min-width: 768px) {
-  .game-level-tap-btn {
-    padding: 12px 24px;
-    gap: 6px;
-  }
-
-  .tap-pipe {
-    width: 16px;
-    height: 20px;
-  }
-
-  .tap-spout {
-    width: 32px;
-    height: 12px;
-  }
-
-  .game-level-tap-icon {
-    width: 56px;
-    height: 56px;
-  }
-
-  .game-level-tap-label {
-    font-size: 11px;
-  }
 }
 
 /* Containers Section */
@@ -451,31 +423,29 @@ body {
 
 /* Sink Section */
 .game-level-sink-section {
-  --section-scale: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
-  padding: 4px 0;
-  /* No transform scaling - use direct sizing instead */
+  padding: clamp(2px, 0.5vh, 8px) 0;
 }
 
 .game-level-sink-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 16px;
+  gap: clamp(4px, 1vh, 10px);
+  padding: clamp(5px, 1.2vh, 12px) clamp(12px, 3vh, 32px);
   background: #64748b;
   color: white;
   border: none;
   border-radius: 9999px;
   font-weight: 800;
-  font-size: 11px;
+  font-size: clamp(10px, 1.4vh, 14px);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 3px 0 0 #475569;
+  box-shadow: 0 clamp(2px, 0.4vh, 4px) 0 0 #475569;
   position: relative;
   z-index: 10;
 }
@@ -492,36 +462,21 @@ body {
 .game-level-sink-btn.active,
 .game-level-sink-btn.suggested {
   background: #dc2626;
-  box-shadow: 0 3px 0 0 #991b1b;
+  box-shadow: 0 clamp(2px, 0.4vh, 4px) 0 0 #991b1b;
   animation: pulse 1.5s ease-in-out infinite;
-}
-
-@media (min-width: 768px) {
-  .game-level-sink-btn {
-    padding: 12px 32px;
-    font-size: 14px;
-    gap: 10px;
-  }
 }
 
 .game-level-sink-visual {
   width: 100%;
-  max-width: 200px;
-  margin-top: -4px;
+  max-width: clamp(160px, 35vh, 350px);
+  margin-top: clamp(-6px, -1vh, -2px);
   transition: all 0.3s ease;
 }
 
-@media (min-width: 768px) {
-  .game-level-sink-visual {
-    max-width: 300px;
-    margin-top: -8px;
-  }
-}
-
 .sink-basin {
-  height: 28px;
+  height: clamp(24px, 5vh, 50px);
   background: linear-gradient(180deg, #e2e8f0 0%, #cbd5e1 100%);
-  border: 3px solid #94a3b8;
+  border: clamp(2px, 0.4vh, 4px) solid #94a3b8;
   border-top: none;
   border-radius: 0 0 50% 50% / 0 0 100% 100%;
   display: flex;
@@ -530,32 +485,17 @@ body {
   box-shadow: inset 0 8px 16px rgba(0, 0, 0, 0.05);
 }
 
-@media (min-width: 768px) {
-  .sink-basin {
-    height: 44px;
-    border-width: 4px;
-  }
-}
-
 .game-level-sink-visual.highlighted .sink-basin {
   background: linear-gradient(180deg, #fef2f2 0%, #fee2e2 100%);
   border-color: #f87171;
 }
 
 .sink-drain {
-  width: 18px;
-  height: 8px;
+  width: clamp(16px, 3vh, 28px);
+  height: clamp(6px, 1.2vh, 14px);
   background: linear-gradient(180deg, #64748b 0%, #475569 100%);
   border-radius: 50%;
-  margin-top: 4px;
-}
-
-@media (min-width: 768px) {
-  .sink-drain {
-    width: 24px;
-    height: 12px;
-    margin-top: 8px;
-  }
+  margin-top: clamp(3px, 0.8vh, 10px);
 }
 
 .game-level-sink-visual.highlighted .sink-drain {
