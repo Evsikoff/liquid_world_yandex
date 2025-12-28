@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import MainMenu from './components/MainMenu';
 import GameLevel from './components/GameLevel';
 import LevelSelect from './components/LevelSelect';
-import RotateDeviceOverlay from './components/RotateDeviceOverlay';
 import { useDeviceDetection } from './hooks/useDeviceDetection';
 import { useInterfaceLanguage } from './hooks/useInterfaceLanguage';
 import { LEVELS, AUDIO_ASSETS } from './constants';
@@ -56,7 +55,7 @@ const App: React.FC = () => {
   const stageRef = useRef<HTMLDivElement | null>(null);
 
   // Mobile device detection
-  const { isMobile, isPortrait } = useDeviceDetection();
+  const { isMobile } = useDeviceDetection();
 
   // Audio settings
   const [audioSettings, setAudioSettings] = useState({
@@ -471,8 +470,6 @@ const App: React.FC = () => {
   return (
     <div className="app-shell" data-lang={language}>
       <div className="app-stage" ref={stageRef}>
-        {/* Show rotate overlay on mobile landscape mode */}
-        {isMobile && !isPortrait && <RotateDeviceOverlay />}
 
         <div className="app-stage-scaler" style={{ aspectRatio: stageAspectRatio }}>
           <div className="app-stage-content">

@@ -2,7 +2,7 @@ import { Level } from './types';
 
 // Вспомогательный хелпер для корректной работы путей в билде,
 // который может разворачиваться не из корня домена (например, на Яндекс Играх)
-const withBase = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
+export const withBase = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
 
 // Пути к вашим локальным файлам в репозитории
 // Создайте папку /audio/ в корне и разложите файлы по этим путям
