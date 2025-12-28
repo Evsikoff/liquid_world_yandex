@@ -2,7 +2,7 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Занимательные жидкости</title>
     <!-- Yandex Games SDK -->
     <script src="https://yandex.ru/games/sdk/v2"></script>
@@ -56,6 +56,24 @@
           touchTimer = null;
         }
       }, { passive: true });
+
+      // Prevent pull-to-refresh
+      let lastTouchY = 0;
+      document.addEventListener('touchstart', function(e) {
+        lastTouchY = e.touches[0].clientY;
+      }, { passive: true });
+
+      document.addEventListener('touchmove', function(e) {
+        const touchY = e.touches[0].clientY;
+        const touchYDelta = touchY - lastTouchY;
+
+        // If scrolling down from the top, prevent the pull-to-refresh
+        if (window.scrollY === 0 && touchYDelta > 0) {
+          e.preventDefault();
+        }
+
+        lastTouchY = touchY;
+      }, { passive: false });
     </script>
   </body>
 </html>

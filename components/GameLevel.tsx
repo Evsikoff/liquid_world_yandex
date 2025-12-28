@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Level, ContainerState } from '../types';
 import Container from './Container';
 import Modal from './Modal';
-import { RotateCcw, Info, Droplets, Undo2, LogOut, Lightbulb, Lock, ChevronRight, Trash2, Music, Volume2, VolumeX } from 'lucide-react';
+import { RotateCcw, Info, Droplets, Undo2, LogOut, Lightbulb, Lock, ChevronRight, Trash2, Music, Volume2, VolumeX, Plus, Minus } from 'lucide-react';
 import { stopGameplay } from '../services/yandexSdk';
 
 interface GameLevelProps {
@@ -312,26 +312,34 @@ const GameLevel: React.FC<GameLevelProps> = ({
         </div>
       </header>
 
-      {/* Main Game Area - uses flex layout for reliable positioning */}
-      <main className="game-level-main" ref={gameAreaRef}>
-        {/* Tap Section - only when hasSinkAndTap */}
+      {/* Main Game Area - portrait layout for mobile */}
+      <main className="game-level-main game-level-main-portrait" ref={gameAreaRef}>
+        {/* Faucet and Controls Section - sprite with buttons to the right */}
         {level.hasSinkAndTap && (
-          <div className="game-level-tap-section">
-            <button
-              onClick={handleTapButtonClick}
-              className={`game-level-tap-btn ${selectedId === 'TAP' ? 'active' : ''} ${isTapSuggested ? 'suggested' : ''}`}
-            >
-              <div className="game-level-tap-visual">
-                <div className="tap-pipe"></div>
-                <div className="tap-spout"></div>
-              </div>
-              <div className="game-level-tap-icon">
-                <Droplets size={isMobile ? 20 : 28} />
-              </div>
-              <span className="game-level-tap-label">
-                {selectedId === 'TAP' ? 'ВЫБЕРИТЕ' : isTapSuggested ? 'НАЛИТЬ?' : 'КРАН'}
-              </span>
-            </button>
+          <div className="game-level-faucet-container">
+            {/* Faucet Sprite */}
+            <div className="game-level-faucet-sprite">
+              <img src="/images/faucetandsink.png" alt="Кран с раковиной" />
+            </div>
+
+            {/* Control Buttons - to the right of sprite */}
+            <div className="game-level-faucet-controls">
+              <button
+                onClick={handleTapButtonClick}
+                className={`game-level-control-btn game-level-control-fill ${selectedId === 'TAP' ? 'active' : ''} ${isTapSuggested ? 'suggested' : ''}`}
+              >
+                <Plus size={isMobile ? 24 : 32} strokeWidth={3} />
+                <span>{selectedId === 'TAP' ? 'ВЫБЕРИТЕ' : isTapSuggested ? 'НАЛИТЬ?' : 'НАЛИТЬ'}</span>
+              </button>
+
+              <button
+                onClick={handleSinkButtonClick}
+                className={`game-level-control-btn game-level-control-drain ${selectedId === 'SINK' ? 'active' : ''} ${isSinkSuggested ? 'suggested' : ''}`}
+              >
+                <Minus size={isMobile ? 24 : 32} strokeWidth={3} />
+                <span>{selectedId === 'SINK' ? 'ВЫБЕРИТЕ' : isSinkSuggested ? 'СЛИТЬ?' : 'СЛИТЬ'}</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -361,26 +369,6 @@ const GameLevel: React.FC<GameLevelProps> = ({
             })}
           </div>
         </div>
-
-        {/* Sink Section - only when hasSinkAndTap */}
-        {level.hasSinkAndTap && (
-          <div className="game-level-sink-section">
-            <button
-              onClick={handleSinkButtonClick}
-              className={`game-level-sink-btn ${selectedId === 'SINK' ? 'active' : ''} ${isSinkSuggested ? 'suggested' : ''}`}
-            >
-              <Trash2 size={isMobile ? 18 : 24} />
-              <span>
-                {selectedId === 'SINK' ? 'ВЫБЕРИТЕ' : isSinkSuggested ? 'СЛИТЬ?' : 'РАКОВИНА'}
-              </span>
-            </button>
-            <div className={`game-level-sink-visual ${selectedId === 'SINK' || isSinkSuggested ? 'highlighted' : ''}`}>
-              <div className="sink-basin">
-                <div className="sink-drain"></div>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
 
       {/* Modals */}

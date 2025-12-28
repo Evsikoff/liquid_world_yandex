@@ -15,10 +15,10 @@ const RotateDeviceOverlay: React.FC = () => {
 
       {/* Content */}
       <div className="relative z-10 text-center text-white">
-        {/* Animated phone icon */}
+        {/* Animated phone icon - horizontal with rotation animation */}
         <div className="relative mb-8">
-          <div className="animate-rotate-phone">
-            <Smartphone size={120} strokeWidth={1.5} className="text-white/90" />
+          <div className="animate-rotate-phone-to-portrait">
+            <Smartphone size={120} strokeWidth={1.5} className="text-white/90 rotate-90" />
           </div>
 
           {/* Rotation arrow */}
@@ -33,24 +33,24 @@ const RotateDeviceOverlay: React.FC = () => {
         </h2>
 
         <p className="text-white/80 text-lg max-w-xs mx-auto leading-relaxed">
-          Для лучшего игрового опыта переверните телефон в горизонтальное положение
+          Для лучшего игрового опыта переверните телефон в вертикальное положение
         </p>
 
-        {/* Visual hint */}
+        {/* Visual hint - landscape to portrait */}
         <div className="mt-8 flex items-center justify-center gap-4">
-          <div className="w-12 h-20 border-3 border-white/40 rounded-lg flex items-center justify-center">
-            <div className="w-1 h-8 bg-white/40 rounded-full" />
+          <div className="w-20 h-12 border-3 border-white/40 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-1 bg-white/40 rounded-full" />
           </div>
           <div className="text-3xl animate-bounce">→</div>
-          <div className="w-20 h-12 border-3 border-white rounded-lg flex items-center justify-center shadow-lg shadow-white/20">
-            <div className="w-8 h-1 bg-white rounded-full" />
+          <div className="w-12 h-20 border-3 border-white rounded-lg flex items-center justify-center shadow-lg shadow-white/20">
+            <div className="w-1 h-8 bg-white rounded-full" />
           </div>
         </div>
       </div>
 
       {/* Styles */}
       <style>{`
-        @keyframes rotate-phone {
+        @keyframes rotate-phone-to-portrait {
           0%, 100% {
             transform: rotate(0deg);
           }
@@ -61,8 +61,8 @@ const RotateDeviceOverlay: React.FC = () => {
             transform: rotate(15deg);
           }
         }
-        .animate-rotate-phone {
-          animation: rotate-phone 2s ease-in-out infinite;
+        .animate-rotate-phone-to-portrait {
+          animation: rotate-phone-to-portrait 2s ease-in-out infinite;
         }
         .border-3 {
           border-width: 3px;

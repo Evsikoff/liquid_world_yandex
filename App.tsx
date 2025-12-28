@@ -471,8 +471,8 @@ const App: React.FC = () => {
   return (
     <div className="app-shell" data-lang={language}>
       <div className="app-stage" ref={stageRef}>
-        {/* Show rotate overlay on mobile portrait mode */}
-        {isMobile && isPortrait && <RotateDeviceOverlay />}
+        {/* Show rotate overlay on mobile landscape mode */}
+        {isMobile && !isPortrait && <RotateDeviceOverlay />}
 
         <div className="app-stage-scaler" style={{ aspectRatio: stageAspectRatio }}>
           <div className="app-stage-content">
