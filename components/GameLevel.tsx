@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Level, ContainerState } from '../types';
+import { withBase } from '../constants';
 import Container from './Container';
 import Modal from './Modal';
 import { RotateCcw, Info, Droplets, Undo2, LogOut, Lightbulb, Lock, ChevronRight, Trash2, Music, Volume2, VolumeX, Plus, Minus } from 'lucide-react';
@@ -319,7 +320,7 @@ const GameLevel: React.FC<GameLevelProps> = ({
           <div className="game-level-faucet-container">
             {/* Faucet Sprite */}
             <div className="game-level-faucet-sprite">
-              <img src="/images/faucetandsink.png" alt="Кран с раковиной" />
+              <img src={withBase('images/faucetandsink.png')} alt="Кран с раковиной" />
             </div>
 
             {/* Control Buttons - to the right of sprite */}
