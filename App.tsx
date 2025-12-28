@@ -31,13 +31,13 @@ const DESKTOP_STAGE_METRICS = {
 };
 
 const MOBILE_STAGE_METRICS = {
-  aspectRatio: 2.0723,
-  containerHeight: 412,
-  containerWidth: 853.79,
-  observedHeight: 412,
-  observedWidth: 853.78,
-  stageAspectRatio: 2.0723,
-  stageScale: 0.5722
+  aspectRatio: 0.4621,
+  containerHeight: 844,
+  containerWidth: 390,
+  observedHeight: 844,
+  observedWidth: 390,
+  stageAspectRatio: 0.4621,
+  stageScale: 0.75
 };
 
 // Web Audio API manager - doesn't show in system media player
