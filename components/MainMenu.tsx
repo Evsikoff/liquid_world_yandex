@@ -11,6 +11,7 @@ interface MainMenuProps {
   toggleMusic: () => void;
   toggleSfx: () => void;
   isMobile?: boolean;
+  isGameReady?: boolean;
 }
 
 const MainMenu: React.FC<MainMenuProps> = ({
@@ -22,7 +23,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
   audioSettings,
   toggleMusic,
   toggleSfx,
-  isMobile = false
+  isMobile = false,
+  isGameReady = false
 }) => {
   return (
     <div className={`h-full w-full bg-slate-100 flex relative overflow-hidden ${isMobile ? 'flex-col items-center justify-start pt-4 px-4 pb-4' : 'items-center justify-center p-4'}`}>
@@ -65,7 +67,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
             <>
               <button
                 onClick={(e) => { e.preventDefault(); onContinue(); }}
-                className={`w-full group relative flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-black shadow-[0_10px_25px_rgba(59,130,246,0.3)] transition-all active:scale-95 ${isMobile ? 'gap-3 py-4 text-lg' : 'gap-4 py-5 text-xl'}`}
+                disabled={!isGameReady}
+                className={`w-full group relative flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-black shadow-[0_10px_25px_rgba(59,130,246,0.3)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-500 ${isMobile ? 'gap-3 py-4 text-lg' : 'gap-4 py-5 text-xl'}`}
               >
                 <PlayCircle size={isMobile ? 24 : 28} />
                 Продолжить
@@ -76,7 +79,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
 
               <button
                 onClick={(e) => { e.preventDefault(); onOpenLevelSelect(); }}
-                className={`w-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold transition-all active:scale-95 ${isMobile ? 'gap-3 py-3.5 text-base' : 'gap-4 py-5 text-lg'}`}
+                disabled={!isGameReady}
+                className={`w-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-100 ${isMobile ? 'gap-3 py-3.5 text-base' : 'gap-4 py-5 text-lg'}`}
               >
                 <List size={isMobile ? 22 : 24} />
                 Выбрать уровень
@@ -84,7 +88,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
 
               <button
                 onClick={(e) => { e.preventDefault(); onStart(); }}
-                className={`w-full text-slate-400 hover:text-red-500 font-bold transition-all flex items-center justify-center gap-2 ${isMobile ? 'pt-2 text-sm' : 'pt-4 text-sm'}`}
+                disabled={!isGameReady}
+                className={`w-full text-slate-400 hover:text-red-500 font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-slate-400 ${isMobile ? 'pt-2 text-sm' : 'pt-4 text-sm'}`}
               >
                 Начать игру заново
               </button>
@@ -93,7 +98,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
             <>
               <button
                 onClick={(e) => { e.preventDefault(); onStart(); }}
-                className={`w-full group relative flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-black shadow-[0_10px_30px_rgba(59,130,246,0.4)] transition-all active:scale-95 animate-bounce-subtle ${isMobile ? 'gap-3 py-5 text-xl' : 'gap-4 py-6 text-2xl'}`}
+                disabled={!isGameReady}
+                className={`w-full group relative flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-black shadow-[0_10px_30px_rgba(59,130,246,0.4)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-500 ${isGameReady ? 'animate-bounce-subtle' : ''} ${isMobile ? 'gap-3 py-5 text-xl' : 'gap-4 py-6 text-2xl'}`}
               >
                 <Sparkles size={isMobile ? 24 : 28} className="text-yellow-300" />
                 Новая игра
@@ -101,7 +107,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
 
               <button
                 onClick={(e) => { e.preventDefault(); onOpenLevelSelect(); }}
-                className={`w-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-2xl font-bold transition-all active:scale-95 ${isMobile ? 'gap-3 py-3.5 text-base' : 'gap-4 py-4 text-lg'}`}
+                disabled={!isGameReady}
+                className={`w-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-2xl font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-100 ${isMobile ? 'gap-3 py-3.5 text-base' : 'gap-4 py-4 text-lg'}`}
               >
                 <List size={isMobile ? 22 : 24} />
                 Выбрать уровень

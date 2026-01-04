@@ -50,6 +50,7 @@ const App: React.FC = () => {
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [maxReachedLevelIndex, setMaxReachedLevelIndex] = useState(0);
   const [stageAspectRatio, setStageAspectRatio] = useState(16 / 9);
+  const [isGameReady, setIsGameReady] = useState(false);
   const language = useInterfaceLanguage('ru');
 
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -278,6 +279,7 @@ const App: React.FC = () => {
       await initYandexSdk();
       if (cancelled) return;
       gameReady();
+      setIsGameReady(true);
     };
 
     if (document.readyState === 'complete') {
@@ -484,6 +486,7 @@ const App: React.FC = () => {
                 toggleMusic={toggleMusic}
                 toggleSfx={toggleSfx}
                 isMobile={isMobile}
+                isGameReady={isGameReady}
               />
             )}
 
